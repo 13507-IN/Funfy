@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { Palette, Type, Image as ImageIcon, Shapes, Download, ShoppingCart, Trash2 } from "lucide-react";
 import StickerCanvas from "../components/StickerCanvas";
 import { useStickerStore } from "../store/useStickerStore";
@@ -7,6 +8,7 @@ import * as fabric from "fabric";
 
 export default function Home() {
   const { canvas, cartItems } = useStickerStore();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const addText = () => {
     if (!canvas) return;
@@ -43,8 +45,48 @@ export default function Home() {
     canvas.renderAll();
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!canvas || !e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = (f) => {
+      const data = f.target?.result;
+      if (typeof data !== "string") return;
+
+      const imgElement = new window.Image();
+      imgElement.src = data;
+      imgElement.onload = () => {
+        const image = new fabric.Image(imgElement, {
+          left: 100,
+          top: 100,
+        });
+        // Scale down if image is too large
+        if (image.width && image.width > 300) {
+          image.scaleToWidth(300);
+        }
+        canvas.add(image);
+        canvas.setActiveObject(image);
+        canvas.renderAll();
+      };
+    };
+
+    reader.readAsDataURL(file);
+    // Reset input
+    e.target.value = '';
+  };
+
   return (
     <div className="flex flex-col flex-1 h-screen bg-slate-50 overflow-hidden">
+      {/* Hidden File Input */}
+      <input 
+        type="file" 
+        accept="image/*" 
+        ref={fileInputRef} 
+        onChange={handleImageUpload} 
+        className="hidden" 
+      />
+
       {/* Top Header */}
       <header className="h-16 flex items-center justify-between px-6 bg-white border-b border-slate-200 shadow-sm z-10 shrink-0">
         <div className="flex items-center gap-2">
@@ -69,7 +111,7 @@ export default function Home() {
         
         {/* Left Sidebar - Tools */}
         <aside className="w-20 bg-white border-r border-slate-200 flex flex-col items-center py-6 gap-6 shrink-0 z-10 shadow-sm">
-          <ToolButton icon={<ImageIcon size={24} />} label="Images" onClick={() => {}} />
+          <ToolButton icon={<ImageIcon size={24} />} label="Images" onClick={() => fileInputRef.current?.click()} />
           <ToolButton icon={<Type size={24} />} label="Text" onClick={addText} />
           <ToolButton icon={<Shapes size={24} />} label="Shapes" onClick={addShape} />
           <ToolButton icon={<Palette size={24} />} label="Colors" onClick={() => {}} />

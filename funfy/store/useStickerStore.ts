@@ -1,17 +1,20 @@
 import { create } from 'zustand';
-import { Canvas } from 'fabric';
+import { Canvas, FabricObject } from 'fabric';
 
 interface StickerState {
   canvas: Canvas | null;
-  setCanvas: (canvas: Canvas) => void;
+  setCanvas: (canvas: Canvas | null) => void;
+  activeObject: FabricObject | null;
+  setActiveObject: (obj: FabricObject | null) => void;
   cartItems: number;
   addToCart: () => void;
-  // We will add more state for active objects, colors, etc.
 }
 
 export const useStickerStore = create<StickerState>((set) => ({
   canvas: null,
   setCanvas: (canvas) => set({ canvas }),
+  activeObject: null,
+  setActiveObject: (obj) => set({ activeObject: obj }),
   cartItems: 0,
   addToCart: () => set((state) => ({ cartItems: state.cartItems + 1 })),
 }));
