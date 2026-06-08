@@ -1,13 +1,14 @@
 "use client";
 
 import { useRef } from "react";
-import { Palette, Type, Image as ImageIcon, Shapes, Download, ShoppingCart, Trash2 } from "lucide-react";
+import { Palette, Type, Image as ImageIcon, Shapes, Download, ShoppingCart, Trash2, ArrowUpToLine, ArrowDownToLine, Trash, Scissors, PlusCircle } from "lucide-react";
 import StickerCanvas from "../components/StickerCanvas";
+import CartSidebar from "../components/CartSidebar";
 import { useStickerStore } from "../store/useStickerStore";
 import * as fabric from "fabric";
 
 export default function Home() {
-  const { canvas, cartItems } = useStickerStore();
+  const { canvas, cartItems, activeObject, setCartOpen, addToCart } = useStickerStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const addText = () => {
@@ -61,7 +62,6 @@ export default function Home() {
           left: 100,
           top: 100,
         });
-        // Scale down if image is too large
         if (image.width && image.width > 300) {
           image.scaleToWidth(300);
         }
@@ -72,13 +72,71 @@ export default function Home() {
     };
 
     reader.readAsDataURL(file);
-    // Reset input
     e.target.value = '';
+  };
+
+  const bringForward = () => {
+    if (!canvas || !activeObject) return;
+    canvas.bringObjectForward(activeObject);
+    canvas.renderAll();
+  };
+
+  const sendBackward = () => {
+    if (!canvas || !activeObject) return;
+    canvas.sendObjectBackwards(activeObject);
+    canvas.renderAll();
+  };
+
+  const deleteActive = () => {
+    if (!canvas || !activeObject) return;
+    canvas.remove(activeObject);
+    canvas.discardActiveObject();
+    canvas.renderAll();
+  };
+
+  const addDieCutOutline = () => {
+    if (!canvas) return;
+    const objects = canvas.getObjects();
+    objects.forEach((obj) => {
+      obj.set('shadow', new fabric.Shadow({
+        color: '#ffffff',
+        blur: 10,
+        offsetX: 0,
+        offsetY: 0,
+        nonScaling: true
+      }));
+      if (obj.type !== 'image') {
+        obj.set('stroke', '#ffffff');
+        obj.set('strokeWidth', 8);
+      }
+    });
+    canvas.backgroundColor = "#f1f5f9";
+    canvas.renderAll();
+  };
+
+  const handleAddToCart = () => {
+    if (!canvas) return;
+    canvas.discardActiveObject();
+    canvas.renderAll();
+    
+    const dataUrl = canvas.toDataURL({
+      format: 'png',
+      multiplier: 2 // High res export
+    });
+
+    addToCart({
+      name: "Custom Die-Cut Sticker",
+      quantity: 50, // default batch
+      price: 0.50, // 50 cents per sticker
+      dataUrl
+    });
+
+    setCartOpen(true);
   };
 
   return (
     <div className="flex flex-col flex-1 h-screen bg-slate-50 overflow-hidden">
-      {/* Hidden File Input */}
+      <CartSidebar />
       <input 
         type="file" 
         accept="image/*" 
@@ -87,18 +145,24 @@ export default function Home() {
         className="hidden" 
       />
 
-      {/* Top Header */}
       <header className="h-16 flex items-center justify-between px-6 bg-white border-b border-slate-200 shadow-sm z-10 shrink-0">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-fuchsia-500 to-violet-500 flex items-center justify-center text-white font-bold text-xl">F</div>
           <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-fuchsia-600 to-violet-600 tracking-tight">Funfy</h1>
         </div>
         <div className="flex items-center gap-4">
+          <button className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-slate-100 text-slate-700 font-medium transition-colors" onClick={addDieCutOutline}>
+            <Scissors size={18} />
+            Preview Die-Cut
+          </button>
           <button className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-slate-100 text-slate-700 font-medium transition-colors">
             <Download size={18} />
             Export PNG
           </button>
-          <button className="flex items-center gap-2 px-5 py-2 rounded-full bg-slate-900 text-white font-medium hover:bg-slate-800 transition-colors shadow-md shadow-slate-200 hover:shadow-lg">
+          <button 
+            className="flex items-center gap-2 px-5 py-2 rounded-full bg-slate-900 text-white font-medium hover:bg-slate-800 transition-colors shadow-md shadow-slate-200 hover:shadow-lg"
+            onClick={() => setCartOpen(true)}
+          >
             <ShoppingCart size={18} />
             Cart
             <span className="bg-fuchsia-500 text-white text-xs px-2 py-0.5 rounded-full ml-1">{cartItems}</span>
@@ -106,10 +170,7 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Main Workspace */}
       <main className="flex flex-1 overflow-hidden relative">
-        
-        {/* Left Sidebar - Tools */}
         <aside className="w-20 bg-white border-r border-slate-200 flex flex-col items-center py-6 gap-6 shrink-0 z-10 shadow-sm">
           <ToolButton icon={<ImageIcon size={24} />} label="Images" onClick={() => fileInputRef.current?.click()} />
           <ToolButton icon={<Type size={24} />} label="Text" onClick={addText} />
@@ -121,9 +182,32 @@ export default function Home() {
           </div>
         </aside>
 
-        {/* Center - Canvas Area */}
-        <section className="flex-1 bg-slate-100/50 flex flex-col items-center justify-center p-8 overflow-auto pattern-dots">
+        <section className="flex-1 bg-slate-100/50 flex flex-col items-center justify-center p-8 overflow-auto pattern-dots relative">
+          
+          {activeObject && (
+            <div className="absolute top-8 bg-white px-4 py-2 rounded-full shadow-lg border border-slate-200 flex items-center gap-4 z-20 animate-in fade-in slide-in-from-top-4 duration-200">
+              <button onClick={bringForward} className="p-2 hover:bg-slate-100 rounded-full text-slate-600 transition" title="Bring Forward">
+                <ArrowUpToLine size={20} />
+              </button>
+              <button onClick={sendBackward} className="p-2 hover:bg-slate-100 rounded-full text-slate-600 transition" title="Send Backward">
+                <ArrowDownToLine size={20} />
+              </button>
+              <div className="w-px h-6 bg-slate-200" />
+              <button onClick={deleteActive} className="p-2 hover:bg-rose-50 rounded-full text-rose-500 transition" title="Delete">
+                <Trash size={20} />
+              </button>
+            </div>
+          )}
+
           <StickerCanvas />
+
+          <button 
+            className="absolute bottom-8 right-8 flex items-center gap-2 px-6 py-4 rounded-full bg-gradient-to-r from-fuchsia-500 to-violet-500 text-white font-bold hover:shadow-xl hover:shadow-fuchsia-500/30 transition-all hover:-translate-y-1"
+            onClick={handleAddToCart}
+          >
+            <PlusCircle size={24} />
+            Order Stickers
+          </button>
         </section>
 
       </main>

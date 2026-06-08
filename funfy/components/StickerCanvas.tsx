@@ -7,6 +7,7 @@ import { useStickerStore } from "../store/useStickerStore";
 export default function StickerCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const setCanvas = useStickerStore((state) => state.setCanvas);
+  const setActiveObject = useStickerStore((state) => state.setActiveObject);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -21,12 +22,23 @@ export default function StickerCanvas() {
 
     setCanvas(fabricCanvas);
 
+    fabricCanvas.on('selection:created', (e) => {
+      setActiveObject(e.selected ? e.selected[0] : null);
+    });
+    fabricCanvas.on('selection:updated', (e) => {
+      setActiveObject(e.selected ? e.selected[0] : null);
+    });
+    fabricCanvas.on('selection:cleared', () => {
+      setActiveObject(null);
+    });
+
     // Clean up on unmount
     return () => {
       fabricCanvas.dispose();
-      setCanvas(null as any);
+      setCanvas(null);
+      setActiveObject(null);
     };
-  }, [setCanvas]);
+  }, [setCanvas, setActiveObject]);
 
   return (
     <div className="w-[500px] h-[500px] bg-white rounded-2xl shadow-xl border border-slate-200 relative group overflow-hidden">
