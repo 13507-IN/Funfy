@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Palette, Type, Image as ImageIcon, Shapes, Download, ShoppingCart, Trash2, ArrowUpToLine, ArrowDownToLine, Trash, Scissors, PlusCircle } from "lucide-react";
 import StickerCanvas from "../components/StickerCanvas";
 import CartSidebar from "../components/CartSidebar";
@@ -10,6 +10,7 @@ import * as fabric from "fabric";
 export default function Home() {
   const { canvas, cartItems, activeObject, setCartOpen, addToCart } = useStickerStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showShapes, setShowShapes] = useState(false);
 
   const addText = () => {
     if (!canvas) return;
@@ -26,17 +27,30 @@ export default function Home() {
     canvas.renderAll();
   };
 
-  const addShape = () => {
+  const addShape = (type: string) => {
     if (!canvas) return;
-    const circle = new fabric.Circle({
-      radius: 50,
-      fill: "#3b82f6",
-      left: 200,
-      top: 200,
-    });
-    canvas.add(circle);
-    canvas.setActiveObject(circle);
-    canvas.renderAll();
+    let shape: fabric.FabricObject | null = null;
+    
+    if (type === 'circle') {
+      shape = new fabric.Circle({ radius: 50, fill: "#3b82f6", left: 200, top: 200 });
+    } else if (type === 'rect') {
+      shape = new fabric.Rect({ width: 100, height: 100, fill: "#10b981", left: 200, top: 200 });
+    } else if (type === 'triangle') {
+      shape = new fabric.Triangle({ width: 100, height: 100, fill: "#f59e0b", left: 200, top: 200 });
+    } else if (type === 'star') {
+      shape = new fabric.Polygon([
+        {x: 50, y: 0}, {x: 61, y: 35}, {x: 98, y: 35}, {x: 68, y: 57}, 
+        {x: 79, y: 91}, {x: 50, y: 70}, {x: 21, y: 91}, {x: 32, y: 57}, 
+        {x: 2, y: 35}, {x: 39, y: 35}
+      ], { fill: "#f43f5e", left: 200, top: 200 });
+    }
+
+    if (shape) {
+      canvas.add(shape);
+      canvas.setActiveObject(shape);
+      canvas.renderAll();
+      setShowShapes(false);
+    }
   };
 
   const clearCanvas = () => {
@@ -171,13 +185,27 @@ export default function Home() {
       </header>
 
       <main className="flex flex-1 overflow-hidden relative">
-        <aside className="w-20 bg-white border-r border-slate-200 flex flex-col items-center py-6 gap-6 shrink-0 z-10 shadow-sm">
+        <aside className="w-20 bg-white border-r border-slate-200 flex flex-col items-center py-6 gap-6 shrink-0 z-10 shadow-sm relative">
           <ToolButton icon={<ImageIcon size={24} />} label="Images" onClick={() => fileInputRef.current?.click()} />
           <ToolButton icon={<Type size={24} />} label="Text" onClick={addText} />
-          <ToolButton icon={<Shapes size={24} />} label="Shapes" onClick={addShape} />
+          
+          <div className="relative w-full">
+            <ToolButton icon={<Shapes size={24} />} label="Shapes" onClick={() => setShowShapes(!showShapes)} />
+            {showShapes && (
+              <div className="absolute left-24 top-0 bg-white shadow-xl border border-slate-200 rounded-2xl p-4 flex gap-4 z-50 animate-in fade-in slide-in-from-left-4">
+                <button onClick={() => addShape('circle')} className="w-12 h-12 bg-blue-500 rounded-full hover:scale-110 transition-transform shadow-md" title="Circle" />
+                <button onClick={() => addShape('rect')} className="w-12 h-12 bg-emerald-500 rounded-lg hover:scale-110 transition-transform shadow-md" title="Square" />
+                <button onClick={() => addShape('triangle')} className="w-0 h-0 border-l-[24px] border-l-transparent border-r-[24px] border-r-transparent border-b-[40px] border-b-amber-500 hover:scale-110 transition-transform drop-shadow-md" title="Triangle" />
+                <button onClick={() => addShape('star')} className="w-12 h-12 text-rose-500 hover:scale-110 transition-transform drop-shadow-md" title="Star">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                </button>
+              </div>
+            )}
+          </div>
+
           <ToolButton icon={<Palette size={24} />} label="Colors" onClick={() => {}} />
           
-          <div className="mt-auto flex flex-col items-center gap-6">
+          <div className="mt-auto w-full flex flex-col items-center gap-6">
             <ToolButton icon={<Trash2 size={24} className="text-rose-500" />} label="Clear" onClick={clearCanvas} />
           </div>
         </aside>
