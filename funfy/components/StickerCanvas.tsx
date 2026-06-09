@@ -22,6 +22,62 @@ export default function StickerCanvas() {
 
     setCanvas(fabricCanvas);
 
+    let clipboard: fabric.FabricObject | null = null;
+
+    const handleKeyDown = async (e: KeyboardEvent) => {
+      // Don't trigger if user is typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key.toLowerCase() === 'c') {
+          const activeObject = fabricCanvas.getActiveObject();
+          if (activeObject) {
+            try {
+              clipboard = await activeObject.clone();
+            } catch (err) {
+              console.error("Failed to copy", err);
+            }
+          }
+        } else if (e.key.toLowerCase() === 'v') {
+          if (!clipboard) return;
+          try {
+            const clonedObj = await clipboard.clone();
+            fabricCanvas.discardActiveObject();
+            
+            clonedObj.set({
+              left: (clonedObj.left || 0) + 20,
+              top: (clonedObj.top || 0) + 20,
+              evented: true,
+            });
+
+            if (clonedObj.type === 'activeSelection') {
+              clonedObj.canvas = fabricCanvas;
+              // @ts-ignore
+              clonedObj.forEachObject((obj) => {
+                fabricCanvas.add(obj);
+              });
+              clonedObj.setCoords();
+            } else {
+              fabricCanvas.add(clonedObj);
+            }
+            
+            // Shift clipboard slightly so next paste moves again
+            clipboard.top = (clipboard.top || 0) + 20;
+            clipboard.left = (clipboard.left || 0) + 20;
+            
+            fabricCanvas.setActiveObject(clonedObj);
+            fabricCanvas.requestRenderAll();
+          } catch (err) {
+            console.error("Failed to paste", err);
+          }
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
     fabricCanvas.on('selection:created', (e) => {
       setActiveObject(e.selected ? e.selected[0] : null);
     });
@@ -34,6 +90,7 @@ export default function StickerCanvas() {
 
     // Clean up on unmount
     return () => {
+      window.removeEventListener('keydown', handleKeyDown);
       fabricCanvas.dispose();
       setCanvas(null);
       setActiveObject(null);
