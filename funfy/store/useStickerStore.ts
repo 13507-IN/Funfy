@@ -21,6 +21,8 @@ interface StickerState {
   setCartOpen: (open: boolean) => void;
   isGuideOpen: boolean;
   setGuideOpen: (open: boolean) => void;
+  isLayersOpen: boolean;
+  setLayersOpen: (open: boolean) => void;
   guideState: {
     ruleOfThirds: boolean;
     gridSnapping: boolean;
@@ -43,6 +45,8 @@ export const useStickerStore = create<StickerState>((set) => ({
   setCartOpen: (open) => set({ isCartOpen: open }),
   isGuideOpen: false,
   setGuideOpen: (open) => set({ isGuideOpen: open }),
+  isLayersOpen: false,
+  setLayersOpen: (open) => set({ isLayersOpen: open }),
   guideState: {
     ruleOfThirds: false,
     gridSnapping: false,

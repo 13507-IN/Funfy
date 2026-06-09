@@ -1,15 +1,16 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Palette, Type, Image as ImageIcon, Shapes, Download, ShoppingCart, Trash2, ArrowUpToLine, ArrowDownToLine, Trash, Scissors, PlusCircle, Eraser, Loader2, BookOpen } from "lucide-react";
+import { Palette, Type, Image as ImageIcon, Shapes, Download, ShoppingCart, Trash2, ArrowUpToLine, ArrowDownToLine, Trash, Scissors, PlusCircle, Eraser, Loader2, BookOpen, Layers } from "lucide-react";
 import StickerCanvas from "../components/StickerCanvas";
 import CartSidebar from "../components/CartSidebar";
 import GuideSidebar from "../components/GuideSidebar";
+import LayersSidebar from "../components/LayersSidebar";
 import { useStickerStore } from "../store/useStickerStore";
 import * as fabric from "fabric";
 
 export default function Home() {
-  const { canvas, cartItems, activeObject, setCartOpen, addToCart, setGuideOpen } = useStickerStore();
+  const { canvas, cartItems, activeObject, setCartOpen, addToCart, setGuideOpen, setLayersOpen } = useStickerStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showShapes, setShowShapes] = useState(false);
   const [showColors, setShowColors] = useState(false);
@@ -250,6 +251,7 @@ export default function Home() {
     <div className="flex flex-col flex-1 h-screen bg-slate-50 overflow-hidden">
       <CartSidebar />
       <GuideSidebar />
+      <LayersSidebar />
       <input 
         type="file" 
         accept="image/*" 
@@ -336,6 +338,7 @@ export default function Home() {
           </div>
           
           <div className="mt-auto w-full flex flex-col items-center gap-2">
+            <ToolButton icon={<Layers size={24} className="text-amber-500" />} label="Layers" onClick={() => setLayersOpen(true)} />
             <ToolButton icon={<BookOpen size={24} className="text-indigo-500" />} label="Guide" onClick={() => setGuideOpen(true)} />
             <ToolButton icon={<Trash2 size={24} className="text-rose-500" />} label="Clear" onClick={clearCanvas} />
           </div>
