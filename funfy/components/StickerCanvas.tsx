@@ -22,6 +22,40 @@ export default function StickerCanvas() {
 
     setCanvas(fabricCanvas);
 
+    const STORAGE_KEY = "funfy_canvas_state";
+    const EXPIRY_TIME = 30 * 60 * 1000; // 30 minutes
+
+    const saveCanvasState = () => {
+      const state = {
+        data: fabricCanvas.toJSON(),
+        timestamp: Date.now()
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    };
+
+    const loadCanvasState = async () => {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const state = JSON.parse(saved);
+          if (Date.now() - state.timestamp < EXPIRY_TIME) {
+            await fabricCanvas.loadFromJSON(state.data);
+            fabricCanvas.requestRenderAll();
+          } else {
+            localStorage.removeItem(STORAGE_KEY);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load canvas state", err);
+      }
+    };
+
+    loadCanvasState();
+
+    fabricCanvas.on('object:added', saveCanvasState);
+    fabricCanvas.on('object:modified', saveCanvasState);
+    fabricCanvas.on('object:removed', saveCanvasState);
+
     let clipboard: fabric.FabricObject | null = null;
 
     const handleKeyDown = async (e: KeyboardEvent) => {
