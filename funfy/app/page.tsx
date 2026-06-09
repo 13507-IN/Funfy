@@ -7,7 +7,6 @@ import CartSidebar from "../components/CartSidebar";
 import GuideSidebar from "../components/GuideSidebar";
 import { useStickerStore } from "../store/useStickerStore";
 import * as fabric from "fabric";
-import { removeBackground as imglyRemoveBackground } from "@imgly/background-removal";
 
 export default function Home() {
   const { canvas, cartItems, activeObject, setCartOpen, addToCart, setGuideOpen } = useStickerStore();
@@ -130,36 +129,58 @@ export default function Home() {
 
   const handleRemoveBackground = async () => {
     if (!canvas || !activeObject || activeObject.type !== 'image') return;
-    try {
-      setIsRemovingBg(true);
-      // @ts-ignore
-      const originalSrc = activeObject.getSrc ? activeObject.getSrc() : activeObject.getElement()?.src;
-      if (!originalSrc) {
-        setIsRemovingBg(false);
-        return;
-      }
-      const imageBlob = await imglyRemoveBackground(originalSrc);
-      const url = URL.createObjectURL(imageBlob);
-      const imgElement = new window.Image();
-      imgElement.src = url;
-      imgElement.onload = () => {
-        const newImage = new fabric.Image(imgElement, {
-          left: activeObject.left,
-          top: activeObject.top,
-          scaleX: activeObject.scaleX,
-          scaleY: activeObject.scaleY,
-          angle: activeObject.angle,
-        });
-        canvas.remove(activeObject);
-        canvas.add(newImage);
-        canvas.setActiveObject(newImage);
-        canvas.renderAll();
-        setIsRemovingBg(false);
-      };
-    } catch (error) {
-      console.error("Failed to remove background", error);
+    setIsRemovingBg(true);
+    
+    // @ts-ignore
+    const originalSrc = activeObject.getSrc ? activeObject.getSrc() : activeObject.getElement()?.src;
+    
+    if (!originalSrc) {
       setIsRemovingBg(false);
+      return;
     }
+
+    const worker = new Worker(new URL('../workers/bgRemoval.worker.ts', import.meta.url));
+
+    worker.onmessage = (e) => {
+      if (e.data.success) {
+        const url = URL.createObjectURL(e.data.blob);
+        const imgElement = new window.Image();
+        imgElement.src = url;
+        imgElement.onload = () => {
+          const newImage = new fabric.Image(imgElement, {
+            left: activeObject.left,
+            top: activeObject.top,
+            scaleX: activeObject.scaleX,
+            scaleY: activeObject.scaleY,
+            angle: activeObject.angle,
+          });
+          canvas.remove(activeObject);
+          canvas.add(newImage);
+          canvas.setActiveObject(newImage);
+          canvas.renderAll();
+          setIsRemovingBg(false);
+          worker.terminate();
+        };
+      } else {
+        console.error("Worker failed to remove background", e.data.error);
+        setIsRemovingBg(false);
+        worker.terminate();
+      }
+    };
+
+    worker.onerror = (error) => {
+      console.error("Worker error", error);
+      setIsRemovingBg(false);
+      worker.terminate();
+    };
+
+    // Pre-process image if it's too large to send to the worker
+    if (originalSrc.length > 5000000) {
+        // Just a safety warning, we still send it. Real robust impl would downscale it using a temp canvas
+        console.warn("Image is quite large, background removal might take a moment...");
+    }
+
+    worker.postMessage({ imageUrl: originalSrc });
   };
 
   const deleteActive = () => {
