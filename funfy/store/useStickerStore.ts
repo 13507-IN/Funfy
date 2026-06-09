@@ -19,6 +19,13 @@ interface StickerState {
   addToCart: (item: Omit<CartItem, 'id'>) => void;
   isCartOpen: boolean;
   setCartOpen: (open: boolean) => void;
+  isGuideOpen: boolean;
+  setGuideOpen: (open: boolean) => void;
+  guideState: {
+    ruleOfThirds: boolean;
+    gridSnapping: boolean;
+  };
+  setGuideState: (state: Partial<StickerState['guideState']>) => void;
 }
 
 export const useStickerStore = create<StickerState>((set) => ({
@@ -34,4 +41,13 @@ export const useStickerStore = create<StickerState>((set) => ({
   })),
   isCartOpen: false,
   setCartOpen: (open) => set({ isCartOpen: open }),
+  isGuideOpen: false,
+  setGuideOpen: (open) => set({ isGuideOpen: open }),
+  guideState: {
+    ruleOfThirds: false,
+    gridSnapping: false,
+  },
+  setGuideState: (newState) => set((state) => ({ 
+    guideState: { ...state.guideState, ...newState } 
+  })),
 }));
