@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@imgly/background-removal": "^1.7.0",
     "fabric": "^7.4.0",
     "lucide-react": "^1.17.0",
     "next": "16.2.7",

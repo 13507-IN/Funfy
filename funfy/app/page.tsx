@@ -1,16 +1,22 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Palette, Type, Image as ImageIcon, Shapes, Download, ShoppingCart, Trash2, ArrowUpToLine, ArrowDownToLine, Trash, Scissors, PlusCircle } from "lucide-react";
+import { Palette, Type, Image as ImageIcon, Shapes, Download, ShoppingCart, Trash2, ArrowUpToLine, ArrowDownToLine, Trash, Scissors, PlusCircle, Eraser, Loader2 } from "lucide-react";
 import StickerCanvas from "../components/StickerCanvas";
 import CartSidebar from "../components/CartSidebar";
 import { useStickerStore } from "../store/useStickerStore";
 import * as fabric from "fabric";
+import { removeBackground as imglyRemoveBackground } from "@imgly/background-removal";
 
 export default function Home() {
   const { canvas, cartItems, activeObject, setCartOpen, addToCart } = useStickerStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showShapes, setShowShapes] = useState(false);
+  const [showColors, setShowColors] = useState(false);
+  const [currentColor, setCurrentColor] = useState("#f43f5e");
+  const [isRemovingBg, setIsRemovingBg] = useState(false);
+
+  const PRESET_COLORS = ["#f43f5e", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#000000", "#ffffff"];
 
   const addText = () => {
     if (!canvas) return;
@@ -18,7 +24,7 @@ export default function Home() {
       left: 200,
       top: 200,
       fontFamily: "Arial",
-      fill: "#f43f5e",
+      fill: currentColor,
       fontSize: 40,
       fontWeight: "bold",
     });
@@ -32,17 +38,17 @@ export default function Home() {
     let shape: fabric.FabricObject | null = null;
     
     if (type === 'circle') {
-      shape = new fabric.Circle({ radius: 50, fill: "#3b82f6", left: 200, top: 200 });
+      shape = new fabric.Circle({ radius: 50, fill: currentColor, left: 200, top: 200 });
     } else if (type === 'rect') {
-      shape = new fabric.Rect({ width: 100, height: 100, fill: "#10b981", left: 200, top: 200 });
+      shape = new fabric.Rect({ width: 100, height: 100, fill: currentColor, left: 200, top: 200 });
     } else if (type === 'triangle') {
-      shape = new fabric.Triangle({ width: 100, height: 100, fill: "#f59e0b", left: 200, top: 200 });
+      shape = new fabric.Triangle({ width: 100, height: 100, fill: currentColor, left: 200, top: 200 });
     } else if (type === 'star') {
       shape = new fabric.Polygon([
         {x: 50, y: 0}, {x: 61, y: 35}, {x: 98, y: 35}, {x: 68, y: 57}, 
         {x: 79, y: 91}, {x: 50, y: 70}, {x: 21, y: 91}, {x: 32, y: 57}, 
         {x: 2, y: 35}, {x: 39, y: 35}
-      ], { fill: "#f43f5e", left: 200, top: 200 });
+      ], { fill: currentColor, left: 200, top: 200 });
     }
 
     if (shape) {
@@ -99,6 +105,60 @@ export default function Home() {
     if (!canvas || !activeObject) return;
     canvas.sendObjectBackwards(activeObject);
     canvas.renderAll();
+  };
+
+  const handleColorChange = (color: string) => {
+    setCurrentColor(color);
+    if (!canvas || !activeObject) return;
+    
+    if (activeObject.type === 'image') {
+      const filter = new fabric.filters.BlendColor({
+        color: color,
+        mode: 'tint',
+        alpha: 0.5
+      });
+      // @ts-ignore
+      activeObject.filters = [filter];
+      // @ts-ignore
+      activeObject.applyFilters();
+    } else {
+      activeObject.set('fill', color);
+    }
+    canvas.renderAll();
+  };
+
+  const handleRemoveBackground = async () => {
+    if (!canvas || !activeObject || activeObject.type !== 'image') return;
+    try {
+      setIsRemovingBg(true);
+      // @ts-ignore
+      const originalSrc = activeObject.getSrc ? activeObject.getSrc() : activeObject.getElement()?.src;
+      if (!originalSrc) {
+        setIsRemovingBg(false);
+        return;
+      }
+      const imageBlob = await imglyRemoveBackground(originalSrc);
+      const url = URL.createObjectURL(imageBlob);
+      const imgElement = new window.Image();
+      imgElement.src = url;
+      imgElement.onload = () => {
+        const newImage = new fabric.Image(imgElement, {
+          left: activeObject.left,
+          top: activeObject.top,
+          scaleX: activeObject.scaleX,
+          scaleY: activeObject.scaleY,
+          angle: activeObject.angle,
+        });
+        canvas.remove(activeObject);
+        canvas.add(newImage);
+        canvas.setActiveObject(newImage);
+        canvas.renderAll();
+        setIsRemovingBg(false);
+      };
+    } catch (error) {
+      console.error("Failed to remove background", error);
+      setIsRemovingBg(false);
+    }
   };
 
   const deleteActive = () => {
@@ -203,7 +263,38 @@ export default function Home() {
             )}
           </div>
 
-          <ToolButton icon={<Palette size={24} />} label="Colors" onClick={() => {}} />
+          <div className="relative w-full">
+            <ToolButton icon={<Palette size={24} color={currentColor} />} label="Colors" onClick={() => setShowColors(!showColors)} />
+            {showColors && (
+              <div className="absolute left-24 top-0 bg-white shadow-xl border border-slate-200 rounded-2xl p-4 flex flex-col gap-3 z-50 animate-in fade-in slide-in-from-left-4 w-48">
+                <div className="text-sm font-semibold text-slate-700 mb-1">Theme Colors</div>
+                <div className="flex flex-wrap gap-2">
+                  {PRESET_COLORS.map(c => (
+                    <button 
+                      key={c} 
+                      onClick={() => handleColorChange(c)} 
+                      className={`w-8 h-8 rounded-full border-2 ${currentColor === c ? 'border-slate-800 scale-110' : 'border-transparent hover:scale-110'} transition-transform shadow-sm`} 
+                      style={{backgroundColor: c}}
+                      title={c}
+                    />
+                  ))}
+                </div>
+                <div className="w-full h-px bg-slate-100 my-1" />
+                <div className="flex items-center gap-3">
+                  <div className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-slate-200 shadow-sm shrink-0">
+                    <input 
+                      type="color" 
+                      value={currentColor} 
+                      onChange={(e) => handleColorChange(e.target.value)}
+                      className="absolute -top-2 -left-2 w-12 h-12 cursor-pointer"
+                      title="Custom Color"
+                    />
+                  </div>
+                  <span className="text-sm text-slate-600 font-medium">Custom Color</span>
+                </div>
+              </div>
+            )}
+          </div>
           
           <div className="mt-auto w-full flex flex-col items-center gap-6">
             <ToolButton icon={<Trash2 size={24} className="text-rose-500" />} label="Clear" onClick={clearCanvas} />
@@ -214,6 +305,15 @@ export default function Home() {
           
           {activeObject && (
             <div className="absolute top-8 bg-white px-4 py-2 rounded-full shadow-lg border border-slate-200 flex items-center gap-4 z-20 animate-in fade-in slide-in-from-top-4 duration-200">
+              {activeObject.type === 'image' && (
+                <>
+                  <button onClick={handleRemoveBackground} disabled={isRemovingBg} className="flex items-center gap-2 px-3 py-1 hover:bg-slate-100 rounded-full text-slate-700 font-medium transition disabled:opacity-50" title="Remove Background">
+                    {isRemovingBg ? <Loader2 size={18} className="animate-spin text-fuchsia-500" /> : <Eraser size={18} />}
+                    <span className="text-sm">{isRemovingBg ? "Removing..." : "Remove BG"}</span>
+                  </button>
+                  <div className="w-px h-6 bg-slate-200" />
+                </>
+              )}
               <button onClick={bringForward} className="p-2 hover:bg-slate-100 rounded-full text-slate-600 transition" title="Bring Forward">
                 <ArrowUpToLine size={20} />
               </button>
