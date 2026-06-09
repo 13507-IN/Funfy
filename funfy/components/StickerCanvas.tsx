@@ -25,12 +25,19 @@ export default function StickerCanvas() {
     const STORAGE_KEY = "funfy_canvas_state";
     const EXPIRY_TIME = 30 * 60 * 1000; // 30 minutes
 
+    let isCanvasLoading = true;
+
     const saveCanvasState = () => {
-      const state = {
-        data: fabricCanvas.toJSON(),
-        timestamp: Date.now()
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      if (isCanvasLoading) return;
+      try {
+        const state = {
+          data: fabricCanvas.toJSON(),
+          timestamp: Date.now()
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (err) {
+        console.warn("Could not save to localStorage (possibly too large)", err);
+      }
     };
 
     const loadCanvasState = async () => {
@@ -47,6 +54,8 @@ export default function StickerCanvas() {
         }
       } catch (err) {
         console.error("Failed to load canvas state", err);
+      } finally {
+        isCanvasLoading = false;
       }
     };
 
