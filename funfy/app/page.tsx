@@ -188,6 +188,22 @@ export default function Home() {
     canvas.renderAll();
   };
 
+  const handleExportPNG = () => {
+    if (!canvas) return;
+    canvas.discardActiveObject();
+    canvas.renderAll();
+    
+    const dataUrl = canvas.toDataURL({
+      format: 'png',
+      multiplier: 2 // High res export
+    });
+    
+    const link = document.createElement('a');
+    link.download = 'funfy-sticker.png';
+    link.href = dataUrl;
+    link.click();
+  };
+
   const handleAddToCart = () => {
     if (!canvas) return;
     canvas.discardActiveObject();
@@ -229,7 +245,7 @@ export default function Home() {
             <Scissors size={18} />
             Preview Die-Cut
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-slate-100 text-slate-700 font-medium transition-colors">
+          <button className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-slate-100 text-slate-700 font-medium transition-colors" onClick={handleExportPNG}>
             <Download size={18} />
             Export PNG
           </button>
