@@ -27,6 +27,11 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} antialiased h-full`}
     >
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Creepster&family=Fredoka+One&family=Pacifico&display=swap" rel="stylesheet" />
+      </head>
       <body className="min-h-full flex flex-col bg-slate-50 text-slate-900 font-sans selection:bg-fuchsia-300 selection:text-fuchsia-900 overflow-hidden">
         {children}
       </body>

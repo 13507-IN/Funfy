@@ -1,21 +1,27 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { Palette, Type, Image as ImageIcon, Shapes, Download, ShoppingCart, Trash2, ArrowUpToLine, ArrowDownToLine, Trash, Scissors, PlusCircle, Eraser, Loader2, BookOpen, Layers } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
+import { Palette, Type, Image as ImageIcon, Shapes, Download, ShoppingCart, Trash2, ArrowUpToLine, ArrowDownToLine, Trash, Scissors, PlusCircle, Eraser, Loader2, BookOpen, Layers, Sticker, Crop, Check, X as CloseIcon } from "lucide-react";
 import StickerCanvas from "../components/StickerCanvas";
 import CartSidebar from "../components/CartSidebar";
 import GuideSidebar from "../components/GuideSidebar";
 import LayersSidebar from "../components/LayersSidebar";
+import StickerLibrarySidebar from "../components/StickerLibrarySidebar";
 import { useStickerStore } from "../store/useStickerStore";
 import * as fabric from "fabric";
 
 export default function Home() {
-  const { canvas, cartItems, activeObject, setCartOpen, addToCart, setGuideOpen, setLayersOpen } = useStickerStore();
+  const { canvas, cartItems, activeObject, setCartOpen, addToCart, setGuideOpen, setLayersOpen, setStickersOpen } = useStickerStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showShapes, setShowShapes] = useState(false);
   const [showColors, setShowColors] = useState(false);
   const [currentColor, setCurrentColor] = useState("#f43f5e");
+  const [currentFont, setCurrentFont] = useState("Arial");
   const [isRemovingBg, setIsRemovingBg] = useState(false);
+  const [isErasing, setIsErasing] = useState(false);
+  const [isCropping, setIsCropping] = useState(false);
+  const [cropBox, setCropBox] = useState<fabric.Rect | null>(null);
+  const [erasePaths, setErasePaths] = useState<fabric.Path[]>([]);
 
   const PRESET_COLORS = ["#f43f5e", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#000000", "#ffffff"];
 
@@ -24,7 +30,7 @@ export default function Home() {
     const text = new fabric.IText("Your Text", {
       left: 200,
       top: 200,
-      fontFamily: "Arial",
+      fontFamily: currentFont,
       fill: currentColor,
       fontSize: 40,
       fontWeight: "bold",
@@ -177,11 +183,162 @@ export default function Home() {
 
     // Pre-process image if it's too large to send to the worker
     if (originalSrc.length > 5000000) {
-        // Just a safety warning, we still send it. Real robust impl would downscale it using a temp canvas
         console.warn("Image is quite large, background removal might take a moment...");
     }
 
     worker.postMessage({ imageUrl: originalSrc });
+  };
+
+  const startEraseMode = () => {
+    if (!canvas || !activeObject || activeObject.type !== 'image') return;
+    setIsErasing(true);
+    canvas.isDrawingMode = true;
+    const brush = new fabric.PencilBrush(canvas);
+    brush.color = 'rgba(255, 0, 0, 0.5)';
+    brush.width = 30;
+    canvas.freeDrawingBrush = brush;
+    setErasePaths([]);
+  };
+
+  const cancelEraseMode = () => {
+    if (!canvas) return;
+    setIsErasing(false);
+    canvas.isDrawingMode = false;
+    erasePaths.forEach(path => canvas.remove(path));
+    setErasePaths([]);
+    canvas.renderAll();
+  };
+
+  const applyEraseMode = () => {
+    if (!canvas || !activeObject || activeObject.type !== 'image') return;
+    setIsErasing(false);
+    canvas.isDrawingMode = false;
+    if (erasePaths.length === 0) return;
+
+    const originalObjects = canvas.getObjects().filter(o => o !== activeObject && !erasePaths.includes(o as fabric.Path));
+    const originalVisibilities = originalObjects.map(o => o.visible);
+    const originalBg = canvas.backgroundColor;
+    
+    originalObjects.forEach(o => o.set('visible', false));
+    canvas.backgroundColor = ''; // transparent
+    
+    erasePaths.forEach(path => {
+        path.set({ globalCompositeOperation: 'destination-out', stroke: 'black', opacity: 1 });
+    });
+    
+    canvas.renderAll();
+    
+    const rect = activeObject.getBoundingRect();
+    const dataUrl = canvas.toDataURL({
+        format: 'png',
+        left: rect.left,
+        top: rect.top,
+        width: rect.width,
+        height: rect.height,
+        multiplier: 1
+    });
+    
+    originalObjects.forEach((o, i) => o.set('visible', originalVisibilities[i]));
+    canvas.backgroundColor = originalBg;
+    erasePaths.forEach(path => canvas.remove(path));
+    setErasePaths([]);
+    
+    const oldImage = activeObject;
+    const imgElement = new window.Image();
+    imgElement.src = dataUrl;
+    imgElement.onload = () => {
+      const newImage = new fabric.Image(imgElement, {
+        left: rect.left,
+        top: rect.top,
+        angle: 0,
+        scaleX: 1,
+        scaleY: 1,
+      });
+      canvas.remove(oldImage);
+      canvas.add(newImage);
+      canvas.setActiveObject(newImage);
+      canvas.renderAll();
+    };
+  };
+
+  const startCropMode = () => {
+    if (!canvas || !activeObject || activeObject.type !== 'image') return;
+    setIsCropping(true);
+    
+    const rect = activeObject.getBoundingRect();
+    const box = new fabric.Rect({
+        left: rect.left,
+        top: rect.top,
+        width: rect.width,
+        height: rect.height,
+        fill: 'rgba(0,0,0,0.3)',
+        stroke: '#3b82f6',
+        strokeWidth: 2,
+        cornerColor: '#3b82f6',
+        transparentCorners: false,
+    });
+    
+    canvas.add(box);
+    canvas.setActiveObject(box);
+    setCropBox(box);
+  };
+
+  const cancelCropMode = () => {
+    if (!canvas || !cropBox) return;
+    setIsCropping(false);
+    canvas.remove(cropBox);
+    setCropBox(null);
+    if (activeObject) canvas.setActiveObject(activeObject);
+    canvas.renderAll();
+  };
+
+  const applyCropMode = () => {
+    if (!canvas || !cropBox || !activeObject) return;
+    
+    setIsCropping(false);
+    
+    const originalObjects = canvas.getObjects().filter(o => o !== activeObject && o !== cropBox);
+    const originalVisibilities = originalObjects.map(o => o.visible);
+    const originalBg = canvas.backgroundColor;
+    
+    originalObjects.forEach(o => o.set('visible', false));
+    canvas.backgroundColor = ''; // transparent
+    cropBox.set('visible', false);
+    
+    canvas.renderAll();
+    
+    const rect = cropBox.getBoundingRect();
+    const dataUrl = canvas.toDataURL({
+        format: 'png',
+        left: rect.left,
+        top: rect.top,
+        width: rect.width,
+        height: rect.height,
+        multiplier: 1
+    });
+    
+    originalObjects.forEach((o, i) => o.set('visible', originalVisibilities[i]));
+    canvas.backgroundColor = originalBg;
+    canvas.remove(cropBox);
+    setCropBox(null);
+    
+    const oldImage = activeObject;
+    const imgElement = new window.Image();
+    imgElement.src = dataUrl;
+    imgElement.onload = () => {
+      const newImage = new fabric.Image(imgElement, {
+        left: rect.left,
+        top: rect.top,
+        angle: 0,
+        scaleX: 1,
+        scaleY: 1,
+      });
+      // Important: don't remove oldImage if the activeObject changed, but we assume it didn't
+      canvas.remove(oldImage);
+      canvas.add(newImage);
+      canvas.setActiveObject(newImage);
+      canvas.renderAll();
+    };
   };
 
   const deleteActive = () => {
@@ -247,11 +404,25 @@ export default function Home() {
     setCartOpen(true);
   };
 
+  useEffect(() => {
+    if (!canvas) return;
+    const handlePathCreated = (opt: any) => {
+      if (isErasing) {
+        setErasePaths(prev => [...prev, opt.path]);
+      }
+    };
+    canvas.on('path:created', handlePathCreated);
+    return () => {
+      canvas.off('path:created', handlePathCreated);
+    };
+  }, [canvas, isErasing]);
+
   return (
     <div className="flex flex-col flex-1 h-screen bg-slate-50 overflow-hidden">
       <CartSidebar />
       <GuideSidebar />
       <LayersSidebar />
+      <StickerLibrarySidebar />
       <input 
         type="file" 
         accept="image/*" 
@@ -288,6 +459,7 @@ export default function Home() {
       <main className="flex flex-1 overflow-hidden relative">
         <aside className="w-20 bg-white border-r border-slate-200 flex flex-col items-center py-6 gap-6 shrink-0 z-10 shadow-sm relative">
           <ToolButton icon={<ImageIcon size={24} />} label="Images" onClick={() => fileInputRef.current?.click()} />
+          <ToolButton icon={<Sticker size={24} className="text-rose-500" />} label="Stickers" onClick={() => setStickersOpen(true)} />
           <ToolButton icon={<Type size={24} />} label="Text" onClick={addText} />
           
           <div className="relative w-full">
@@ -348,25 +520,84 @@ export default function Home() {
           
           {activeObject && (
             <div className="absolute top-8 bg-white px-4 py-2 rounded-full shadow-lg border border-slate-200 flex items-center gap-4 z-20 animate-in fade-in slide-in-from-top-4 duration-200">
-              {activeObject.type === 'image' && (
+              {(activeObject.type === 'i-text' || activeObject.type === 'text') && (
+                <>
+                  <select 
+                    value={(activeObject as fabric.IText).fontFamily}
+                    onChange={(e) => {
+                      const font = e.target.value;
+                      setCurrentFont(font);
+                      activeObject.set('fontFamily', font);
+                      canvas?.renderAll();
+                    }}
+                    className="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-fuchsia-500 focus:border-fuchsia-500 block p-1.5 outline-none font-medium cursor-pointer"
+                  >
+                    <option value="Arial" style={{fontFamily: 'Arial'}}>Arial</option>
+                    <option value="Bangers" style={{fontFamily: 'Bangers'}}>Bangers</option>
+                    <option value="Pacifico" style={{fontFamily: 'Pacifico'}}>Pacifico</option>
+                    <option value="Fredoka One" style={{fontFamily: 'Fredoka One'}}>Fredoka</option>
+                    <option value="Creepster" style={{fontFamily: 'Creepster'}}>Creepster</option>
+                  </select>
+                  <div className="w-px h-6 bg-slate-200" />
+                </>
+              )}
+              {activeObject.type === 'image' && !isErasing && !isCropping && (
                 <>
                   <button onClick={handleRemoveBackground} disabled={isRemovingBg} className="flex items-center gap-2 px-3 py-1 hover:bg-slate-100 rounded-full text-slate-700 font-medium transition disabled:opacity-50" title="Remove Background">
                     {isRemovingBg ? <Loader2 size={18} className="animate-spin text-fuchsia-500" /> : <Eraser size={18} />}
                     <span className="text-sm">{isRemovingBg ? "Removing..." : "Remove BG"}</span>
                   </button>
+                  <button onClick={startCropMode} className="flex items-center gap-2 px-3 py-1 hover:bg-slate-100 rounded-full text-slate-700 font-medium transition" title="Crop Image">
+                    <Crop size={18} />
+                    <span className="text-sm">Crop</span>
+                  </button>
+                  <button onClick={startEraseMode} className="flex items-center gap-2 px-3 py-1 hover:bg-slate-100 rounded-full text-slate-700 font-medium transition" title="Erase Image">
+                    <Scissors size={18} />
+                    <span className="text-sm">Erase</span>
+                  </button>
                   <div className="w-px h-6 bg-slate-200" />
                 </>
               )}
-              <button onClick={bringForward} className="p-2 hover:bg-slate-100 rounded-full text-slate-600 transition" title="Bring Forward">
-                <ArrowUpToLine size={20} />
-              </button>
-              <button onClick={sendBackward} className="p-2 hover:bg-slate-100 rounded-full text-slate-600 transition" title="Send Backward">
-                <ArrowDownToLine size={20} />
-              </button>
-              <div className="w-px h-6 bg-slate-200" />
-              <button onClick={deleteActive} className="p-2 hover:bg-rose-50 rounded-full text-rose-500 transition" title="Delete">
-                <Trash size={20} />
-              </button>
+              {isErasing && (
+                <>
+                  <span className="text-sm font-semibold text-rose-500 flex items-center gap-2"><Eraser size={18} /> Erasing Mode</span>
+                  <div className="w-px h-6 bg-slate-200" />
+                  <button onClick={applyEraseMode} className="flex items-center gap-1 px-3 py-1 hover:bg-emerald-50 text-emerald-600 rounded-full transition">
+                    <Check size={18} /> Apply
+                  </button>
+                  <button onClick={cancelEraseMode} className="flex items-center gap-1 px-3 py-1 hover:bg-rose-50 text-rose-600 rounded-full transition">
+                    <CloseIcon size={18} /> Cancel
+                  </button>
+                  <div className="w-px h-6 bg-slate-200" />
+                </>
+              )}
+              {isCropping && (
+                <>
+                  <span className="text-sm font-semibold text-blue-500 flex items-center gap-2"><Crop size={18} /> Cropping Mode</span>
+                  <div className="w-px h-6 bg-slate-200" />
+                  <button onClick={applyCropMode} className="flex items-center gap-1 px-3 py-1 hover:bg-emerald-50 text-emerald-600 rounded-full transition">
+                    <Check size={18} /> Apply
+                  </button>
+                  <button onClick={cancelCropMode} className="flex items-center gap-1 px-3 py-1 hover:bg-rose-50 text-rose-600 rounded-full transition">
+                    <CloseIcon size={18} /> Cancel
+                  </button>
+                  <div className="w-px h-6 bg-slate-200" />
+                </>
+              )}
+              {!isErasing && !isCropping && (
+                <>
+                  <button onClick={bringForward} className="p-2 hover:bg-slate-100 rounded-full text-slate-600 transition" title="Bring Forward">
+                    <ArrowUpToLine size={20} />
+                  </button>
+                  <button onClick={sendBackward} className="p-2 hover:bg-slate-100 rounded-full text-slate-600 transition" title="Send Backward">
+                    <ArrowDownToLine size={20} />
+                  </button>
+                  <div className="w-px h-6 bg-slate-200" />
+                  <button onClick={deleteActive} className="p-2 hover:bg-rose-50 rounded-full text-rose-500 transition" title="Delete">
+                    <Trash size={20} />
+                  </button>
+                </>
+              )}
             </div>
           )}
 
