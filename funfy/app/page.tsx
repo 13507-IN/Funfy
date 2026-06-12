@@ -561,7 +561,7 @@ export default function Home() {
           <div className="relative shrink-0">
             <ToolButton icon={<Shapes size={24} />} label="Shapes" onClick={() => setShowShapes(!showShapes)} />
             {showShapes && (
-              <div className="absolute bottom-full left-0 mb-4 md:mb-0 md:bottom-auto md:left-24 md:top-0 bg-white shadow-xl border border-slate-200 rounded-2xl p-4 flex gap-4 z-50 animate-in fade-in slide-in-from-bottom-4 md:slide-in-from-left-4">
+              <div className="fixed bottom-24 left-1/2 -translate-x-1/2 md:absolute md:bottom-auto md:left-24 md:top-0 md:translate-x-0 bg-white shadow-xl border border-slate-200 rounded-2xl p-4 flex gap-4 z-50 animate-in fade-in slide-in-from-bottom-4 md:slide-in-from-left-4">
                 <button onClick={() => addShape('circle')} className="w-12 h-12 bg-blue-500 rounded-full hover:scale-110 transition-transform shadow-md" title="Circle" />
                 <button onClick={() => addShape('rect')} className="w-12 h-12 bg-emerald-500 rounded-lg hover:scale-110 transition-transform shadow-md" title="Square" />
                 <button onClick={() => addShape('triangle')} className="w-0 h-0 border-l-[24px] border-l-transparent border-r-[24px] border-r-transparent border-b-[40px] border-b-amber-500 hover:scale-110 transition-transform drop-shadow-md" title="Triangle" />
@@ -575,7 +575,7 @@ export default function Home() {
           <div className="relative shrink-0">
             <ToolButton icon={<Palette size={24} color={currentColor} />} label="Colors" onClick={() => setShowColors(!showColors)} />
             {showColors && (
-              <div className="absolute bottom-full left-0 mb-4 md:mb-0 md:bottom-auto md:left-24 md:top-0 bg-white shadow-xl border border-slate-200 rounded-2xl p-4 flex flex-col gap-3 z-50 animate-in fade-in slide-in-from-bottom-4 md:slide-in-from-left-4 w-48">
+              <div className="fixed bottom-24 left-1/2 -translate-x-1/2 md:absolute md:bottom-auto md:left-24 md:top-0 md:translate-x-0 bg-white shadow-xl border border-slate-200 rounded-2xl p-4 flex flex-col gap-3 z-50 animate-in fade-in slide-in-from-bottom-4 md:slide-in-from-left-4 w-48">
                 <div className="text-sm font-semibold text-slate-700 mb-1">Theme Colors</div>
                 <div className="flex flex-wrap gap-2">
                   {PRESET_COLORS.map(c => (
