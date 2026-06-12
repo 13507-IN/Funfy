@@ -17,7 +17,7 @@ export default function CartSidebar() {
         className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-40 transition-opacity"
         onClick={() => setCartOpen(false)}
       />
-      <div className="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-300">
+      <div className="fixed right-0 top-0 h-full w-full md:w-96 max-w-full bg-white shadow-2xl z-50 flex flex-col animate-in slide-in-from-bottom md:slide-in-from-right duration-300">
         <div className="flex items-center justify-between p-6 border-b border-slate-100">
           <h2 className="text-xl font-bold flex items-center gap-2">
             <ShoppingBag className="text-fuchsia-500" />

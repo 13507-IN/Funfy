@@ -59,8 +59,8 @@ export default function StickerLibrarySidebar() {
   };
 
   return (
-    <div className="absolute left-20 top-0 w-80 h-full bg-white shadow-2xl border-r border-slate-200 z-40 flex flex-col animate-in slide-in-from-left">
-      <div className="flex items-center justify-between p-6 border-b border-slate-100 shrink-0">
+    <div className="fixed inset-0 md:absolute md:inset-auto md:left-20 md:top-0 w-full md:w-80 h-full bg-white shadow-2xl border-r border-slate-200 z-50 flex flex-col animate-in slide-in-from-bottom md:slide-in-from-left">
+      <div className="flex items-center justify-between p-6 border-b border-slate-100 shrink-0 bg-white">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center text-rose-500">
             <Sticker size={20} />

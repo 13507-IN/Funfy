@@ -6,6 +6,7 @@ import { useStickerStore } from "../store/useStickerStore";
 
 export default function StickerCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const setCanvas = useStickerStore((state) => state.setCanvas);
   const setActiveObject = useStickerStore((state) => state.setActiveObject);
 
@@ -21,6 +22,21 @@ export default function StickerCanvas() {
     });
 
     setCanvas(fabricCanvas);
+
+    // Responsive resize observer
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        const { width, height } = entry.contentRect;
+        if (width > 0 && height > 0) {
+          fabricCanvas.setDimensions({ width, height });
+          fabricCanvas.requestRenderAll();
+        }
+      }
+    });
+
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
 
     const STORAGE_KEY = "funfy_canvas_state";
     const EXPIRY_TIME = 30 * 60 * 1000; // 30 minutes
@@ -133,6 +149,7 @@ export default function StickerCanvas() {
 
     // Clean up on unmount
     return () => {
+      resizeObserver.disconnect();
       window.removeEventListener('keydown', handleKeyDown);
       fabricCanvas.dispose();
       setCanvas(null);
@@ -141,7 +158,7 @@ export default function StickerCanvas() {
   }, [setCanvas, setActiveObject]);
 
   return (
-    <div className="w-[500px] h-[500px] bg-white rounded-2xl shadow-xl border border-slate-200 relative group overflow-hidden">
+    <div ref={containerRef} className="w-full max-w-[500px] aspect-square bg-white rounded-2xl shadow-xl border border-slate-200 relative group overflow-hidden">
       {/* Background hint (only visible when canvas is empty, managed by React for simplicity or fabric for accuracy) */}
       <canvas ref={canvasRef} className="w-full h-full cursor-crosshair" />
     </div>
