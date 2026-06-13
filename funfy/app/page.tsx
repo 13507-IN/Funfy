@@ -561,12 +561,15 @@ export default function Home() {
           <div className="relative shrink-0">
             <ToolButton icon={<Shapes size={24} />} label="Shapes" onClick={() => setShowShapes(!showShapes)} />
             {showShapes && (
-              <div className="fixed bottom-24 left-1/2 -translate-x-1/2 md:absolute md:bottom-auto md:left-24 md:top-0 md:translate-x-0 bg-white shadow-xl border border-slate-200 rounded-2xl p-4 flex gap-4 z-50 animate-in fade-in slide-in-from-bottom-4 md:slide-in-from-left-4">
-                <button onClick={() => addShape('circle')} className="w-12 h-12 bg-blue-500 rounded-full hover:scale-110 transition-transform shadow-md" title="Circle" />
-                <button onClick={() => addShape('rect')} className="w-12 h-12 bg-emerald-500 rounded-lg hover:scale-110 transition-transform shadow-md" title="Square" />
-                <button onClick={() => addShape('triangle')} className="w-0 h-0 border-l-[24px] border-l-transparent border-r-[24px] border-r-transparent border-b-[40px] border-b-amber-500 hover:scale-110 transition-transform drop-shadow-md" title="Triangle" />
-                <button onClick={() => addShape('star')} className="w-12 h-12 text-rose-500 hover:scale-110 transition-transform drop-shadow-md" title="Star">
+              <div className="fixed bottom-24 left-1/2 -translate-x-1/2 md:fixed md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:left-24 md:translate-x-0 bg-white shadow-xl border border-slate-200 rounded-2xl p-4 flex gap-4 z-50 animate-in fade-in slide-in-from-bottom-4 md:slide-in-from-left-4">
+                <button onClick={() => { addShape('circle'); setShowShapes(false); }} className="w-12 h-12 bg-blue-500 rounded-full hover:scale-110 transition-transform shadow-md" title="Circle" />
+                <button onClick={() => { addShape('rect'); setShowShapes(false); }} className="w-12 h-12 bg-emerald-500 rounded-lg hover:scale-110 transition-transform shadow-md" title="Square" />
+                <button onClick={() => { addShape('triangle'); setShowShapes(false); }} className="w-0 h-0 border-l-[24px] border-l-transparent border-r-[24px] border-r-transparent border-b-[40px] border-b-amber-500 hover:scale-110 transition-transform drop-shadow-md" title="Triangle" />
+                <button onClick={() => { addShape('star'); setShowShapes(false); }} className="w-12 h-12 text-rose-500 hover:scale-110 transition-transform drop-shadow-md" title="Star">
                   <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                </button>
+                <button onClick={() => setShowShapes(false)} className="absolute -top-3 -right-3 w-8 h-8 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 shadow-md" title="Close">
+                  <CloseIcon size={16} />
                 </button>
               </div>
             )}
@@ -575,8 +578,13 @@ export default function Home() {
           <div className="relative shrink-0">
             <ToolButton icon={<Palette size={24} color={currentColor} />} label="Colors" onClick={() => setShowColors(!showColors)} />
             {showColors && (
-              <div className="fixed bottom-24 left-1/2 -translate-x-1/2 md:absolute md:bottom-auto md:left-24 md:top-0 md:translate-x-0 bg-white shadow-xl border border-slate-200 rounded-2xl p-4 flex flex-col gap-3 z-50 animate-in fade-in slide-in-from-bottom-4 md:slide-in-from-left-4 w-48">
-                <div className="text-sm font-semibold text-slate-700 mb-1">Theme Colors</div>
+              <div className="fixed bottom-24 left-1/2 -translate-x-1/2 md:fixed md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:left-24 md:translate-x-0 bg-white shadow-xl border border-slate-200 rounded-2xl p-4 flex flex-col gap-3 z-50 animate-in fade-in slide-in-from-bottom-4 md:slide-in-from-left-4 w-48">
+                <div className="text-sm font-semibold text-slate-700 mb-1 flex justify-between items-center">
+                  Theme Colors
+                  <button onClick={() => setShowColors(false)} className="text-slate-400 hover:text-slate-700" title="Close">
+                    <CloseIcon size={16} />
+                  </button>
+                </div>
                 <div className="flex flex-wrap gap-2">
                   {PRESET_COLORS.map(c => (
                     <button 
