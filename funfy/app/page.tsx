@@ -559,7 +559,7 @@ export default function Home() {
           <ToolButton icon={<Type size={24} />} label="Text" onClick={addText} />
           
           <div className="relative shrink-0">
-            <ToolButton icon={<Shapes size={24} />} label="Shapes" onClick={() => setShowShapes(!showShapes)} />
+            <ToolButton icon={<Shapes size={24} />} label="Shapes" onClick={() => { setShowShapes(!showShapes); if (!showShapes) setShowColors(false); }} />
             {showShapes && (
               <div className="fixed bottom-24 left-1/2 -translate-x-1/2 md:fixed md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:left-24 md:translate-x-0 bg-white shadow-xl border border-slate-200 rounded-2xl p-4 flex gap-4 z-50 animate-in fade-in slide-in-from-bottom-4 md:slide-in-from-left-4">
                 <button onClick={() => { addShape('circle'); setShowShapes(false); }} className="w-12 h-12 bg-blue-500 rounded-full hover:scale-110 transition-transform shadow-md" title="Circle" />
@@ -576,7 +576,7 @@ export default function Home() {
           </div>
 
           <div className="relative shrink-0">
-            <ToolButton icon={<Palette size={24} color={currentColor} />} label="Colors" onClick={() => setShowColors(!showColors)} />
+            <ToolButton icon={<Palette size={24} color={currentColor} />} label="Colors" onClick={() => { setShowColors(!showColors); if (!showColors) setShowShapes(false); }} />
             {showColors && (
               <div className="fixed bottom-24 left-1/2 -translate-x-1/2 md:fixed md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:left-24 md:translate-x-0 bg-white shadow-xl border border-slate-200 rounded-2xl p-4 flex flex-col gap-3 z-50 animate-in fade-in slide-in-from-bottom-4 md:slide-in-from-left-4 w-48">
                 <div className="text-sm font-semibold text-slate-700 mb-1 flex justify-between items-center">
