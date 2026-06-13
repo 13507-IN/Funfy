@@ -570,7 +570,7 @@ export default function Home() {
           <StickerCanvas />
 
           <button 
-            className="absolute bottom-4 right-4 md:bottom-8 md:right-8 flex items-center gap-2 px-4 md:px-6 py-3 md:py-4 rounded-full bg-gradient-to-r from-fuchsia-500 to-violet-500 text-white font-bold hover:shadow-xl hover:shadow-fuchsia-500/30 transition-all hover:-translate-y-1 text-sm md:text-base z-10"
+            className="fixed bottom-24 right-4 md:bottom-8 md:right-8 flex items-center gap-2 px-4 md:px-6 py-3 md:py-4 rounded-full bg-gradient-to-r from-fuchsia-500 to-violet-500 text-white font-bold shadow-lg hover:shadow-xl hover:shadow-fuchsia-500/30 transition-all hover:-translate-y-1 text-sm md:text-base z-40"
             onClick={handleAddToCart}
           >
             <PlusCircle size={20} className="md:w-6 md:h-6" />

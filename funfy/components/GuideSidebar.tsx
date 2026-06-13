@@ -100,7 +100,7 @@ export default function GuideSidebar() {
   if (!isGuideOpen) return null;
 
   return (
-    <div className="fixed inset-0 md:absolute md:inset-auto md:left-20 md:top-0 w-full md:w-80 h-full bg-white shadow-2xl border-r border-slate-200 z-50 flex flex-col animate-in slide-in-from-bottom md:slide-in-from-left">
+    <div className="fixed inset-0 md:absolute md:inset-auto md:right-0 md:top-0 w-full md:w-80 h-full bg-white shadow-2xl md:border-l border-slate-200 z-50 flex flex-col animate-in slide-in-from-bottom md:slide-in-from-right">
       <div className="flex items-center justify-between p-6 border-b border-slate-100 shrink-0 bg-white">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
@@ -113,7 +113,7 @@ export default function GuideSidebar() {
         </button>
       </div>
 
-      <div className="p-6 flex flex-col gap-8">
+      <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-8">
         
         {/* Guide 1 */}
         <section>
