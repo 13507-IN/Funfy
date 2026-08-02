@@ -12,7 +12,7 @@ import { useStickerStore } from "../store/useStickerStore";
 import * as fabric from "fabric";
 
 export default function Home() {
-  const { canvas, cartItems, activeObject, setCartOpen, addToCart, setGuideOpen, setLayersOpen, setStickersOpen, setDissectOpen, setDissectionSourceImage } = useStickerStore();
+  const { canvas, cartItems, activeObject, setCartOpen, addToCart, isGuideOpen, setGuideOpen, isLayersOpen, setLayersOpen, isStickersOpen, setStickersOpen, isDissectOpen, setDissectOpen, setDissectionSourceImage } = useStickerStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showShapes, setShowShapes] = useState(false);
   const [showColors, setShowColors] = useState(false);
@@ -595,14 +595,14 @@ export default function Home() {
           </button>
         </section>
 
-        <aside className="w-full md:w-20 h-auto md:h-full bg-white border-t md:border-t-0 md:border-r border-slate-200 flex flex-row md:flex-col items-center py-2 md:py-6 px-2 md:px-0 gap-2 md:gap-6 shrink-0 z-30 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] md:shadow-sm relative order-2 md:order-1 overflow-x-auto md:overflow-y-auto hide-scrollbar">
-          <ToolButton icon={<Sparkles size={24} className="text-fuchsia-500" />} label="Dissect" onClick={() => setDissectOpen(true)} />
-          <ToolButton icon={<ImageIcon size={24} />} label="Images" onClick={() => fileInputRef.current?.click()} />
-          <ToolButton icon={<Sticker size={24} className="text-rose-500" />} label="Stickers" onClick={() => setStickersOpen(true)} />
-          <ToolButton icon={<Type size={24} />} label="Text" onClick={addText} />
+        <aside className="w-full md:w-20 h-auto md:h-full bg-white border-t md:border-t-0 md:border-r border-slate-200 flex flex-row md:flex-col items-center py-2 md:py-3 px-2 md:px-1.5 gap-1.5 md:gap-2 shrink-0 z-30 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] md:shadow-sm relative order-2 md:order-1 overflow-x-auto md:overflow-y-auto hide-scrollbar">
+          <ToolButton icon={<Sparkles size={22} className="text-fuchsia-500" />} label="Dissect" onClick={() => setDissectOpen(!isDissectOpen)} isActive={isDissectOpen} />
+          <ToolButton icon={<ImageIcon size={22} className="text-blue-500" />} label="Images" onClick={() => fileInputRef.current?.click()} />
+          <ToolButton icon={<Sticker size={22} className="text-rose-500" />} label="Stickers" onClick={() => setStickersOpen(!isStickersOpen)} isActive={isStickersOpen} />
+          <ToolButton icon={<Type size={22} className="text-violet-500" />} label="Text" onClick={addText} />
           
-          <div className="relative shrink-0">
-            <ToolButton icon={<Shapes size={24} />} label="Shapes" onClick={() => { setShowShapes(!showShapes); if (!showShapes) setShowColors(false); }} />
+          <div className="relative shrink-0 w-full flex justify-center">
+            <ToolButton icon={<Shapes size={22} className="text-emerald-500" />} label="Shapes" onClick={() => { setShowShapes(!showShapes); if (!showShapes) setShowColors(false); }} isActive={showShapes} />
             {showShapes && (
               <div className="fixed bottom-24 left-1/2 -translate-x-1/2 md:fixed md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:left-24 md:translate-x-0 bg-white shadow-xl border border-slate-200 rounded-2xl p-4 flex gap-4 z-50 animate-in fade-in slide-in-from-bottom-4 md:slide-in-from-left-4">
                 <button onClick={() => { addShape('circle'); setShowShapes(false); }} className="w-12 h-12 bg-blue-500 rounded-full hover:scale-110 transition-transform shadow-md" title="Circle" />
@@ -618,8 +618,8 @@ export default function Home() {
             )}
           </div>
 
-          <div className="relative shrink-0">
-            <ToolButton icon={<Palette size={24} color={currentColor} />} label="Colors" onClick={() => { setShowColors(!showColors); if (!showColors) setShowShapes(false); }} />
+          <div className="relative shrink-0 w-full flex justify-center">
+            <ToolButton icon={<Palette size={22} color={currentColor} />} label="Colors" onClick={() => { setShowColors(!showColors); if (!showColors) setShowShapes(false); }} isActive={showColors} />
             {showColors && (
               <div className="fixed bottom-24 left-1/2 -translate-x-1/2 md:fixed md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:left-24 md:translate-x-0 bg-white shadow-xl border border-slate-200 rounded-2xl p-4 flex flex-col gap-3 z-50 animate-in fade-in slide-in-from-bottom-4 md:slide-in-from-left-4 w-48">
                 <div className="text-sm font-semibold text-slate-700 mb-1 flex justify-between items-center">
@@ -655,12 +655,12 @@ export default function Home() {
               </div>
             )}
           </div>
+
+          <div className="w-full h-px bg-slate-100 my-1 hidden md:block shrink-0" />
           
-          <div className="md:mt-auto flex flex-row md:flex-col items-center gap-2 shrink-0">
-            <ToolButton icon={<Layers size={24} className="text-amber-500" />} label="Layers" onClick={() => setLayersOpen(true)} />
-            <ToolButton icon={<BookOpen size={24} className="text-indigo-500" />} label="Guide" onClick={() => setGuideOpen(true)} />
-            <ToolButton icon={<Trash2 size={24} className="text-rose-500" />} label="Clear" onClick={clearCanvas} />
-          </div>
+          <ToolButton icon={<Layers size={22} className="text-amber-500" />} label="Layers" onClick={() => setLayersOpen(!isLayersOpen)} isActive={isLayersOpen} />
+          <ToolButton icon={<BookOpen size={22} className="text-indigo-500" />} label="Guide" onClick={() => setGuideOpen(!isGuideOpen)} isActive={isGuideOpen} />
+          <ToolButton icon={<Trash2 size={22} className="text-rose-400" />} label="Clear" onClick={clearCanvas} />
         </aside>
 
       </main>
@@ -668,14 +668,21 @@ export default function Home() {
   );
 }
 
-function ToolButton({ icon, label, onClick }: { icon: React.ReactNode, label: string, onClick?: () => void }) {
+function ToolButton({ icon, label, onClick, isActive }: { icon: React.ReactNode, label: string, onClick?: () => void, isActive?: boolean }) {
   return (
-    <button onClick={onClick} className="flex flex-col items-center justify-center gap-1 group w-16 md:w-full px-2 py-2 md:py-3 hover:bg-fuchsia-50 rounded-xl transition-all relative shrink-0">
-      <div className="text-slate-500 group-hover:text-fuchsia-600 transition-colors group-hover:scale-110 duration-200">
+    <button 
+      onClick={onClick} 
+      className={`flex flex-col items-center justify-center gap-1 group w-16 md:w-full px-1.5 py-1.5 md:py-2 rounded-xl transition-all relative shrink-0 ${
+        isActive ? 'bg-fuchsia-50/90 text-fuchsia-600 shadow-xs' : 'hover:bg-slate-100/80 text-slate-600'
+      }`}
+    >
+      <div className={`transition-transform duration-200 ${isActive ? 'scale-110 text-fuchsia-600' : 'group-hover:scale-110 group-hover:text-fuchsia-600'}`}>
         {icon}
       </div>
-      <span className="text-[10px] font-semibold text-slate-400 group-hover:text-fuchsia-600 uppercase tracking-wider">{label}</span>
-      <div className="absolute left-0 md:left-0 bottom-0 md:bottom-auto md:top-1/2 md:-translate-y-1/2 w-full md:w-1 h-1 md:h-8 bg-fuchsia-500 rounded-t-md md:rounded-r-md opacity-0 group-hover:opacity-100 transition-opacity" />
+      <span className={`text-[10px] font-bold uppercase tracking-wider ${isActive ? 'text-fuchsia-600' : 'text-slate-400 group-hover:text-fuchsia-600'}`}>{label}</span>
+      {isActive && (
+        <div className="absolute left-0 md:left-0 bottom-0 md:bottom-auto md:top-1/2 md:-translate-y-1/2 w-full md:w-1 h-1 md:h-6 bg-fuchsia-500 rounded-t-md md:rounded-r-md" />
+      )}
     </button>
   );
 }
