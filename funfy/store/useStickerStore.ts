@@ -25,6 +25,10 @@ interface StickerState {
   setLayersOpen: (open: boolean) => void;
   isStickersOpen: boolean;
   setStickersOpen: (open: boolean) => void;
+  isDissectOpen: boolean;
+  setDissectOpen: (open: boolean) => void;
+  dissectionSourceImage: string | null;
+  setDissectionSourceImage: (src: string | null) => void;
   guideState: {
     ruleOfThirds: boolean;
     gridSnapping: boolean;
@@ -51,6 +55,10 @@ export const useStickerStore = create<StickerState>((set) => ({
   setLayersOpen: (open) => set({ isLayersOpen: open }),
   isStickersOpen: false,
   setStickersOpen: (open) => set({ isStickersOpen: open }),
+  isDissectOpen: false,
+  setDissectOpen: (open) => set({ isDissectOpen: open }),
+  dissectionSourceImage: null,
+  setDissectionSourceImage: (src) => set({ dissectionSourceImage: src }),
   guideState: {
     ruleOfThirds: false,
     gridSnapping: false,

@@ -1,17 +1,18 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import { Palette, Type, Image as ImageIcon, Shapes, Download, ShoppingCart, Trash2, ArrowUpToLine, ArrowDownToLine, Trash, Scissors, PlusCircle, Eraser, Loader2, BookOpen, Layers, Sticker, Crop, Check, X as CloseIcon } from "lucide-react";
+import { Palette, Type, Image as ImageIcon, Shapes, Download, ShoppingCart, Trash2, ArrowUpToLine, ArrowDownToLine, Trash, Scissors, PlusCircle, Eraser, Loader2, BookOpen, Layers, Sticker, Crop, Check, Sparkles, X as CloseIcon } from "lucide-react";
 import StickerCanvas from "../components/StickerCanvas";
 import CartSidebar from "../components/CartSidebar";
 import GuideSidebar from "../components/GuideSidebar";
 import LayersSidebar from "../components/LayersSidebar";
 import StickerLibrarySidebar from "../components/StickerLibrarySidebar";
+import DissectionSidebar from "../components/DissectionSidebar";
 import { useStickerStore } from "../store/useStickerStore";
 import * as fabric from "fabric";
 
 export default function Home() {
-  const { canvas, cartItems, activeObject, setCartOpen, addToCart, setGuideOpen, setLayersOpen, setStickersOpen } = useStickerStore();
+  const { canvas, cartItems, activeObject, setCartOpen, addToCart, setGuideOpen, setLayersOpen, setStickersOpen, setDissectOpen, setDissectionSourceImage } = useStickerStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showShapes, setShowShapes] = useState(false);
   const [showColors, setShowColors] = useState(false);
@@ -448,6 +449,7 @@ export default function Home() {
       <GuideSidebar />
       <LayersSidebar />
       <StickerLibrarySidebar />
+      <DissectionSidebar />
       <input 
         type="file" 
         accept="image/*" 
@@ -509,6 +511,21 @@ export default function Home() {
               )}
               {activeObject.type === 'image' && !isErasing && !isCropping && (
                 <>
+                  <button 
+                    onClick={() => {
+                      // @ts-ignore
+                      const src = activeObject.getSrc ? activeObject.getSrc() : activeObject.getElement()?.src;
+                      if (src) {
+                        setDissectionSourceImage(src);
+                        setDissectOpen(true);
+                      }
+                    }} 
+                    className="flex items-center gap-2 px-3 py-1 hover:bg-slate-100 rounded-full text-slate-700 font-medium transition" 
+                    title="Dissect Image Components"
+                  >
+                    <Sparkles size={18} className="text-fuchsia-500" />
+                    <span className="text-sm">Dissect</span>
+                  </button>
                   <button onClick={handleRemoveBackground} disabled={isRemovingBg} className="flex items-center gap-2 px-3 py-1 hover:bg-slate-100 rounded-full text-slate-700 font-medium transition disabled:opacity-50" title="Remove Background">
                     {isRemovingBg ? <Loader2 size={18} className="animate-spin text-fuchsia-500" /> : <Eraser size={18} />}
                     <span className="text-sm">{isRemovingBg ? "Removing..." : "Remove BG"}</span>
@@ -579,6 +596,7 @@ export default function Home() {
         </section>
 
         <aside className="w-full md:w-20 h-auto md:h-full bg-white border-t md:border-t-0 md:border-r border-slate-200 flex flex-row md:flex-col items-center py-2 md:py-6 px-2 md:px-0 gap-2 md:gap-6 shrink-0 z-30 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] md:shadow-sm relative order-2 md:order-1 overflow-x-auto md:overflow-y-auto hide-scrollbar">
+          <ToolButton icon={<Sparkles size={24} className="text-fuchsia-500" />} label="Dissect" onClick={() => setDissectOpen(true)} />
           <ToolButton icon={<ImageIcon size={24} />} label="Images" onClick={() => fileInputRef.current?.click()} />
           <ToolButton icon={<Sticker size={24} className="text-rose-500" />} label="Stickers" onClick={() => setStickersOpen(true)} />
           <ToolButton icon={<Type size={24} />} label="Text" onClick={addText} />
