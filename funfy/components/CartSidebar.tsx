@@ -1,11 +1,11 @@
 "use client";
 
-import { X, ShoppingBag, CreditCard } from "lucide-react";
+import { X, ShoppingBag, CreditCard, Trash2, Plus, Minus } from "lucide-react";
 import { useStickerStore } from "../store/useStickerStore";
 import Image from "next/image";
 
 export default function CartSidebar() {
-  const { cart, isCartOpen, setCartOpen } = useStickerStore();
+  const { cart, isCartOpen, setCartOpen, removeFromCart, updateCartQuantity } = useStickerStore();
 
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
@@ -31,7 +31,7 @@ export default function CartSidebar() {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
+        <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
           {cart.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-4">
               <ShoppingBag size={48} className="opacity-20" />
@@ -39,14 +39,42 @@ export default function CartSidebar() {
             </div>
           ) : (
             cart.map((item) => (
-              <div key={item.id} className="flex gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                <div className="w-20 h-20 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex items-center justify-center p-2">
+              <div key={item.id} className="flex gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 relative group">
+                <div className="w-20 h-20 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex items-center justify-center p-2 shrink-0">
                   <Image src={item.dataUrl} alt={item.name} width={80} height={80} className="object-contain w-full h-full" />
                 </div>
-                <div className="flex flex-col justify-center">
-                  <h3 className="font-semibold text-slate-800">{item.name}</h3>
-                  <p className="text-slate-500 text-sm">Qty: {item.quantity}</p>
-                  <p className="text-fuchsia-600 font-bold mt-1">${item.price.toFixed(2)}</p>
+                <div className="flex flex-col justify-between flex-1 min-w-0">
+                  <div className="flex justify-between items-start">
+                    <h3 className="font-bold text-slate-800 text-sm truncate">{item.name}</h3>
+                    <button 
+                      onClick={() => removeFromCart(item.id)}
+                      className="p-1 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition"
+                      title="Remove Item"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+
+                  <div className="flex items-center justify-between mt-2">
+                    <div className="flex items-center border border-slate-200 bg-white rounded-lg p-0.5">
+                      <button
+                        onClick={() => updateCartQuantity(item.id, -25)}
+                        className="p-1 hover:bg-slate-100 text-slate-600 rounded transition"
+                        title="Decrease Batch Quantity"
+                      >
+                        <Minus size={12} />
+                      </button>
+                      <span className="px-2 text-xs font-bold text-slate-700">{item.quantity} pcs</span>
+                      <button
+                        onClick={() => updateCartQuantity(item.id, 25)}
+                        className="p-1 hover:bg-slate-100 text-slate-600 rounded transition"
+                        title="Increase Batch Quantity"
+                      >
+                        <Plus size={12} />
+                      </button>
+                    </div>
+                    <p className="text-fuchsia-600 font-bold text-sm">${(item.price * item.quantity).toFixed(2)}</p>
+                  </div>
                 </div>
               </div>
             ))

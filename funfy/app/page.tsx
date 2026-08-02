@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import { Palette, Type, Image as ImageIcon, Shapes, Download, ShoppingCart, Trash2, ArrowUpToLine, ArrowDownToLine, Trash, Scissors, PlusCircle, Eraser, Loader2, BookOpen, Layers, Sticker, Crop, Check, Sparkles, X as CloseIcon } from "lucide-react";
+import { Palette, Type, Image as ImageIcon, Shapes, Download, ShoppingCart, Trash2, ArrowUpToLine, ArrowDownToLine, Trash, Scissors, PlusCircle, Eraser, Loader2, BookOpen, Layers, Sticker, Crop, Check, Sparkles, FlipHorizontal, FlipVertical, Copy, Lock, X as CloseIcon } from "lucide-react";
 import StickerCanvas from "../components/StickerCanvas";
 import CartSidebar from "../components/CartSidebar";
 import GuideSidebar from "../components/GuideSidebar";
@@ -12,7 +12,7 @@ import { useStickerStore } from "../store/useStickerStore";
 import * as fabric from "fabric";
 
 export default function Home() {
-  const { canvas, cartItems, activeObject, setCartOpen, addToCart, isGuideOpen, setGuideOpen, isLayersOpen, setLayersOpen, isStickersOpen, setStickersOpen, isDissectOpen, setDissectOpen, setDissectionSourceImage } = useStickerStore();
+  const { canvas, cartItems, activeObject, setCartOpen, addToCart, isGuideOpen, setGuideOpen, isLayersOpen, setLayersOpen, isStickersOpen, setStickersOpen, isDissectOpen, setDissectOpen, setDissectionSourceImage, closeAllPanels } = useStickerStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showShapes, setShowShapes] = useState(false);
   const [showColors, setShowColors] = useState(false);
@@ -350,6 +350,51 @@ export default function Home() {
     canvas.renderAll();
   };
 
+  const flipHorizontal = () => {
+    if (!canvas || !activeObject) return;
+    activeObject.set('flipX', !activeObject.flipX);
+    canvas.renderAll();
+  };
+
+  const flipVertical = () => {
+    if (!canvas || !activeObject) return;
+    activeObject.set('flipY', !activeObject.flipY);
+    canvas.renderAll();
+  };
+
+  const duplicateActive = async () => {
+    if (!canvas || !activeObject) return;
+    try {
+      const cloned = await activeObject.clone();
+      cloned.set({
+        left: (cloned.left || 0) + 20,
+        top: (cloned.top || 0) + 20,
+      });
+      canvas.add(cloned);
+      canvas.setActiveObject(cloned);
+      canvas.renderAll();
+    } catch (e) {
+      console.error("Failed to duplicate object", e);
+    }
+  };
+
+  const toggleLockActive = () => {
+    if (!canvas || !activeObject) return;
+    // @ts-ignore
+    const isLocked = activeObject.selectable === false;
+    activeObject.set({
+      selectable: isLocked,
+      evented: isLocked,
+      lockMovementX: !isLocked,
+      lockMovementY: !isLocked,
+      lockRotation: !isLocked,
+      lockScalingX: !isLocked,
+      lockScalingY: !isLocked,
+    });
+    canvas.discardActiveObject();
+    canvas.renderAll();
+  };
+
   const togglePreview = () => {
     if (!canvas) return;
     const objects = canvas.getObjects();
@@ -569,15 +614,28 @@ export default function Home() {
               )}
               {!isErasing && !isCropping && (
                 <>
-                  <button onClick={bringForward} className="p-2 hover:bg-slate-100 rounded-full text-slate-600 transition" title="Bring Forward">
-                    <ArrowUpToLine size={20} />
+                  <button onClick={duplicateActive} className="p-2 hover:bg-slate-100 rounded-full text-slate-600 transition" title="Duplicate Layer (Ctrl+D)">
+                    <Copy size={18} />
                   </button>
-                  <button onClick={sendBackward} className="p-2 hover:bg-slate-100 rounded-full text-slate-600 transition" title="Send Backward">
-                    <ArrowDownToLine size={20} />
+                  <button onClick={flipHorizontal} className="p-2 hover:bg-slate-100 rounded-full text-slate-600 transition" title="Flip Horizontally">
+                    <FlipHorizontal size={18} />
+                  </button>
+                  <button onClick={flipVertical} className="p-2 hover:bg-slate-100 rounded-full text-slate-600 transition" title="Flip Vertically">
+                    <FlipVertical size={18} />
                   </button>
                   <div className="w-px h-6 bg-slate-200" />
-                  <button onClick={deleteActive} className="p-2 hover:bg-rose-50 rounded-full text-rose-500 transition" title="Delete">
-                    <Trash size={20} />
+                  <button onClick={bringForward} className="p-2 hover:bg-slate-100 rounded-full text-slate-600 transition" title="Bring Forward">
+                    <ArrowUpToLine size={18} />
+                  </button>
+                  <button onClick={sendBackward} className="p-2 hover:bg-slate-100 rounded-full text-slate-600 transition" title="Send Backward">
+                    <ArrowDownToLine size={18} />
+                  </button>
+                  <button onClick={toggleLockActive} className="p-2 hover:bg-slate-100 rounded-full text-slate-600 transition" title="Lock Object">
+                    <Lock size={18} />
+                  </button>
+                  <div className="w-px h-6 bg-slate-200" />
+                  <button onClick={deleteActive} className="p-2 hover:bg-rose-50 rounded-full text-rose-500 transition" title="Delete Layer">
+                    <Trash size={18} />
                   </button>
                 </>
               )}
@@ -596,9 +654,9 @@ export default function Home() {
         </section>
 
         <aside className="w-full md:w-20 h-auto md:h-full bg-white border-t md:border-t-0 md:border-r border-slate-200 flex flex-row md:flex-col items-center py-2 md:py-3 px-2 md:px-1.5 gap-1.5 md:gap-2 shrink-0 z-30 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] md:shadow-sm relative order-2 md:order-1 overflow-x-auto md:overflow-y-auto hide-scrollbar">
-          <ToolButton icon={<Sparkles size={22} className="text-fuchsia-500" />} label="Dissect" onClick={() => setDissectOpen(!isDissectOpen)} isActive={isDissectOpen} />
+          <ToolButton icon={<Sparkles size={22} className="text-fuchsia-500" />} label="Dissect" onClick={() => { if (!isDissectOpen) closeAllPanels(); setDissectOpen(!isDissectOpen); }} isActive={isDissectOpen} />
           <ToolButton icon={<ImageIcon size={22} className="text-blue-500" />} label="Images" onClick={() => fileInputRef.current?.click()} />
-          <ToolButton icon={<Sticker size={22} className="text-rose-500" />} label="Stickers" onClick={() => setStickersOpen(!isStickersOpen)} isActive={isStickersOpen} />
+          <ToolButton icon={<Sticker size={22} className="text-rose-500" />} label="Stickers" onClick={() => { if (!isStickersOpen) closeAllPanels(); setStickersOpen(!isStickersOpen); }} isActive={isStickersOpen} />
           <ToolButton icon={<Type size={22} className="text-violet-500" />} label="Text" onClick={addText} />
           
           <div className="relative shrink-0 w-full flex justify-center">
@@ -658,8 +716,8 @@ export default function Home() {
 
           <div className="w-full h-px bg-slate-100 my-1 hidden md:block shrink-0" />
           
-          <ToolButton icon={<Layers size={22} className="text-amber-500" />} label="Layers" onClick={() => setLayersOpen(!isLayersOpen)} isActive={isLayersOpen} />
-          <ToolButton icon={<BookOpen size={22} className="text-indigo-500" />} label="Guide" onClick={() => setGuideOpen(!isGuideOpen)} isActive={isGuideOpen} />
+          <ToolButton icon={<Layers size={22} className="text-amber-500" />} label="Layers" onClick={() => { if (!isLayersOpen) closeAllPanels(); setLayersOpen(!isLayersOpen); }} isActive={isLayersOpen} />
+          <ToolButton icon={<BookOpen size={22} className="text-indigo-500" />} label="Guide" onClick={() => { if (!isGuideOpen) closeAllPanels(); setGuideOpen(!isGuideOpen); }} isActive={isGuideOpen} />
           <ToolButton icon={<Trash2 size={22} className="text-rose-400" />} label="Clear" onClick={clearCanvas} />
         </aside>
 

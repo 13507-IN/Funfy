@@ -89,8 +89,35 @@ export default function StickerCanvas() {
         return;
       }
 
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        const activeObject = fabricCanvas.getActiveObject();
+        // @ts-ignore
+        if (activeObject && activeObject.type !== 'i-text' && !activeObject.isEditing) {
+          fabricCanvas.remove(activeObject);
+          fabricCanvas.discardActiveObject();
+          fabricCanvas.requestRenderAll();
+        }
+      }
+
       if (e.ctrlKey || e.metaKey) {
-        if (e.key.toLowerCase() === 'c') {
+        if (e.key.toLowerCase() === 'd') {
+          e.preventDefault();
+          const activeObject = fabricCanvas.getActiveObject();
+          if (activeObject) {
+            try {
+              const cloned = await activeObject.clone();
+              cloned.set({
+                left: (cloned.left || 0) + 20,
+                top: (cloned.top || 0) + 20,
+              });
+              fabricCanvas.add(cloned);
+              fabricCanvas.setActiveObject(cloned);
+              fabricCanvas.requestRenderAll();
+            } catch (err) {
+              console.error("Failed to duplicate", err);
+            }
+          }
+        } else if (e.key.toLowerCase() === 'c') {
           const activeObject = fabricCanvas.getActiveObject();
           if (activeObject) {
             try {
