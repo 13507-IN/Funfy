@@ -29,9 +29,13 @@ interface StickerState {
   setStickersOpen: (open: boolean) => void;
   isDissectOpen: boolean;
   setDissectOpen: (open: boolean) => void;
+  isEnhancerOpen: boolean;
+  setEnhancerOpen: (open: boolean) => void;
   closeAllPanels: () => void;
   dissectionSourceImage: string | null;
   setDissectionSourceImage: (src: string | null) => void;
+  enhancerSourceImage: string | null;
+  setEnhancerSourceImage: (src: string | null) => void;
   guideState: {
     ruleOfThirds: boolean;
     gridSnapping: boolean;
@@ -79,15 +83,20 @@ export const useStickerStore = create<StickerState>((set) => ({
   setStickersOpen: (open) => set({ isStickersOpen: open }),
   isDissectOpen: false,
   setDissectOpen: (open) => set({ isDissectOpen: open }),
+  isEnhancerOpen: false,
+  setEnhancerOpen: (open) => set({ isEnhancerOpen: open }),
   closeAllPanels: () => set({
     isCartOpen: false,
     isGuideOpen: false,
     isLayersOpen: false,
     isStickersOpen: false,
     isDissectOpen: false,
+    isEnhancerOpen: false,
   }),
   dissectionSourceImage: null,
   setDissectionSourceImage: (src) => set({ dissectionSourceImage: src }),
+  enhancerSourceImage: null,
+  setEnhancerSourceImage: (src) => set({ enhancerSourceImage: src }),
   guideState: {
     ruleOfThirds: false,
     gridSnapping: false,
