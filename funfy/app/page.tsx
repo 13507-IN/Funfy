@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import { Palette, Type, Image as ImageIcon, Shapes, Download, ShoppingCart, Trash2, ArrowUpToLine, ArrowDownToLine, Trash, Scissors, PlusCircle, Eraser, Loader2, BookOpen, Layers, Sticker, Crop, Check, Sparkles, FlipHorizontal, FlipVertical, Copy, Lock, Wand2, X as CloseIcon } from "lucide-react";
+import { Palette, Type, Image as ImageIcon, Shapes, Download, ShoppingCart, Trash2, ArrowUpToLine, ArrowDownToLine, Trash, Scissors, PlusCircle, Eraser, Loader2, BookOpen, Layers, Sticker, Crop, Check, Sparkles, FlipHorizontal, FlipVertical, Copy, Lock, Wand2, Video, X as CloseIcon } from "lucide-react";
 import StickerCanvas from "../components/StickerCanvas";
 import CartSidebar from "../components/CartSidebar";
 import GuideSidebar from "../components/GuideSidebar";
@@ -9,11 +9,12 @@ import LayersSidebar from "../components/LayersSidebar";
 import StickerLibrarySidebar from "../components/StickerLibrarySidebar";
 import DissectionSidebar from "../components/DissectionSidebar";
 import EnhancerSidebar from "../components/EnhancerSidebar";
+import VideoBgRemoverSidebar from "../components/VideoBgRemoverSidebar";
 import { useStickerStore } from "../store/useStickerStore";
 import * as fabric from "fabric";
 
 export default function Home() {
-  const { canvas, cartItems, activeObject, setCartOpen, addToCart, isGuideOpen, setGuideOpen, isLayersOpen, setLayersOpen, isStickersOpen, setStickersOpen, isDissectOpen, setDissectOpen, setDissectionSourceImage, isEnhancerOpen, setEnhancerOpen, setEnhancerSourceImage, closeAllPanels } = useStickerStore();
+  const { canvas, cartItems, activeObject, setCartOpen, addToCart, isGuideOpen, setGuideOpen, isLayersOpen, setLayersOpen, isStickersOpen, setStickersOpen, isDissectOpen, setDissectOpen, setDissectionSourceImage, isEnhancerOpen, setEnhancerOpen, setEnhancerSourceImage, isVideoBgOpen, setVideoBgOpen, closeAllPanels } = useStickerStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showShapes, setShowShapes] = useState(false);
   const [showColors, setShowColors] = useState(false);
@@ -497,6 +498,7 @@ export default function Home() {
       <StickerLibrarySidebar />
       <DissectionSidebar />
       <EnhancerSidebar />
+      <VideoBgRemoverSidebar />
       <input 
         type="file" 
         accept="image/*" 
@@ -671,6 +673,7 @@ export default function Home() {
         </section>
 
         <aside className="w-full md:w-20 h-auto md:h-full bg-white border-t md:border-t-0 md:border-r border-slate-200 flex flex-row md:flex-col items-center py-2 md:py-3 px-2 md:px-1.5 gap-1.5 md:gap-2 shrink-0 z-30 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] md:shadow-sm relative order-2 md:order-1 overflow-x-auto md:overflow-y-auto hide-scrollbar">
+          <ToolButton icon={<Video size={22} className="text-emerald-500" />} label="Video BG" onClick={() => { if (!isVideoBgOpen) closeAllPanels(); setVideoBgOpen(!isVideoBgOpen); }} isActive={isVideoBgOpen} />
           <ToolButton icon={<Wand2 size={22} className="text-amber-500" />} label="Enhance" onClick={() => { if (!isEnhancerOpen) closeAllPanels(); setEnhancerOpen(!isEnhancerOpen); }} isActive={isEnhancerOpen} />
           <ToolButton icon={<Sparkles size={22} className="text-fuchsia-500" />} label="Dissect" onClick={() => { if (!isDissectOpen) closeAllPanels(); setDissectOpen(!isDissectOpen); }} isActive={isDissectOpen} />
           <ToolButton icon={<ImageIcon size={22} className="text-blue-500" />} label="Images" onClick={() => fileInputRef.current?.click()} />

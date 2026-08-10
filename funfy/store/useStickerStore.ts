@@ -31,6 +31,8 @@ interface StickerState {
   setDissectOpen: (open: boolean) => void;
   isEnhancerOpen: boolean;
   setEnhancerOpen: (open: boolean) => void;
+  isVideoBgOpen: boolean;
+  setVideoBgOpen: (open: boolean) => void;
   closeAllPanels: () => void;
   dissectionSourceImage: string | null;
   setDissectionSourceImage: (src: string | null) => void;
@@ -85,6 +87,8 @@ export const useStickerStore = create<StickerState>((set) => ({
   setDissectOpen: (open) => set({ isDissectOpen: open }),
   isEnhancerOpen: false,
   setEnhancerOpen: (open) => set({ isEnhancerOpen: open }),
+  isVideoBgOpen: false,
+  setVideoBgOpen: (open) => set({ isVideoBgOpen: open }),
   closeAllPanels: () => set({
     isCartOpen: false,
     isGuideOpen: false,
@@ -92,6 +96,7 @@ export const useStickerStore = create<StickerState>((set) => ({
     isStickersOpen: false,
     isDissectOpen: false,
     isEnhancerOpen: false,
+    isVideoBgOpen: false,
   }),
   dissectionSourceImage: null,
   setDissectionSourceImage: (src) => set({ dissectionSourceImage: src }),

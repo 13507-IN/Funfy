@@ -185,8 +185,8 @@ export default function StickerCanvas() {
   }, [setCanvas, setActiveObject]);
 
   return (
-    <div ref={containerRef} className="w-full max-w-[500px] aspect-square bg-white rounded-2xl shadow-xl border border-slate-200 relative group overflow-hidden">
-      {/* Background hint (only visible when canvas is empty, managed by React for simplicity or fabric for accuracy) */}
+    <div ref={containerRef} className="w-full max-w-[850px] xl:max-w-[980px] aspect-square max-h-[calc(100vh-130px)] bg-white rounded-2xl shadow-xl border border-slate-200 relative group overflow-hidden transition-all duration-300 flex items-center justify-center">
+      {/* Background hint */}
       <canvas ref={canvasRef} className="w-full h-full cursor-crosshair" />
     </div>
   );
