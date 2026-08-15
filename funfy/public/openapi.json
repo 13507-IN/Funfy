@@ -1,0 +1,195 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Funfy AI Sticker & Image Studio API",
+    "description": "API endpoints for removing backgrounds, upscaling image resolution, dissecting images into sticker components, and generating custom sticker graphics.",
+    "version": "v1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local Development Server"
+    }
+  ],
+  "paths": {
+    "/api/remove-bg": {
+      "post": {
+        "operationId": "removeBackground",
+        "summary": "Remove background from an image",
+        "description": "Accepts an image URL or Base64 string and returns the transparent background PNG result.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "imageUrl": {
+                    "type": "string",
+                    "description": "Public URL of the input image"
+                  },
+                  "imageBase64": {
+                    "type": "string",
+                    "description": "Base64 encoded string of the input image"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Background removed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "message": { "type": "string" },
+                    "resultImageBase64": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/enhance": {
+      "post": {
+        "operationId": "enhanceImage",
+        "summary": "Enhance photo quality and resolution (2K, 4K, 8K)",
+        "description": "Upscales photo resolution, applies unsharp sharpening matrix and noise reduction.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "imageUrl": { "type": "string" },
+                  "imageBase64": { "type": "string" },
+                  "resolution": {
+                    "type": "string",
+                    "enum": ["2k", "4k", "8k"],
+                    "default": "4k"
+                  },
+                  "sharpness": { "type": "integer", "default": 60 },
+                  "denoise": { "type": "integer", "default": 30 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Image enhanced successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "message": { "type": "string" },
+                    "resultImageBase64": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dissect": {
+      "post": {
+        "operationId": "dissectImage",
+        "summary": "Dissect image into sticker components",
+        "description": "Extracts foreground and component elements from an image into isolated cut-out stickers.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "imageUrl": { "type": "string" },
+                  "imageBase64": { "type": "string" },
+                  "sensitivity": { "type": "integer", "default": 50 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Image dissected into components",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "message": { "type": "string" },
+                    "componentsCount": { "type": "integer" },
+                    "components": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "string" },
+                          "label": { "type": "string" },
+                          "resultImageBase64": { "type": "string" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sticker-generate": {
+      "post": {
+        "operationId": "generateSticker",
+        "summary": "Generate a custom text/shape sticker",
+        "description": "Creates a custom sticker graphic with chosen text, font, color, and border style.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "text": { "type": "string", "example": "Awesome!" },
+                  "font": { "type": "string", "example": "Arial" },
+                  "color": { "type": "string", "example": "#f43f5e" },
+                  "shape": { "type": "string", "example": "die-cut" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sticker generated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "message": { "type": "string" },
+                    "resultImageBase64": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

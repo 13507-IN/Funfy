@@ -1,0 +1,17 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Funfy AI Sticker & Image Studio",
+  "name_for_model": "funfy_studio",
+  "description_for_human": "Remove image backgrounds, enhance photos to 4K/8K quality, dissect images into stickers, and generate custom sticker graphics.",
+  "description_for_model": "Funfy Studio plugin allows the model to process images: background removal, super-resolution quality enhancement (2k/4k/8k), dissecting images into sticker components, and creating custom text/shape stickers.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "/openapi.json"
+  },
+  "logo_url": "https://funfy.app/favicon.ico",
+  "contact_email": "support@funfy.app",
+  "legal_info_url": "https://funfy.app/terms"
+}
