@@ -1,14 +1,14 @@
 {
-  "openapi": "3.1.0",
+  "openapi": "3.0.0",
   "info": {
     "title": "Funfy AI Sticker & Image Studio API",
-    "description": "API endpoints for removing backgrounds, upscaling image resolution, dissecting images into sticker components, and generating custom sticker graphics.",
-    "version": "v1.0.0"
+    "description": "API endpoints for background removal, image resolution upscaling, image component dissection, and custom sticker generation.",
+    "version": "1.0.0"
   },
   "servers": [
     {
-      "url": "http://localhost:3000",
-      "description": "Local Development Server"
+      "url": "https://funfy.vercel.app",
+      "description": "Production Server"
     }
   ],
   "paths": {
@@ -16,23 +16,13 @@
       "post": {
         "operationId": "removeBackground",
         "summary": "Remove background from an image",
-        "description": "Accepts an image URL or Base64 string and returns the transparent background PNG result.",
+        "description": "Removes background from an image URL or Base64 data string and returns transparent PNG result.",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "imageUrl": {
-                    "type": "string",
-                    "description": "Public URL of the input image"
-                  },
-                  "imageBase64": {
-                    "type": "string",
-                    "description": "Base64 encoded string of the input image"
-                  }
-                }
+                "$ref": "#/components/schemas/RemoveBgRequest"
               }
             }
           }
@@ -43,12 +33,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "message": { "type": "string" },
-                    "resultImageBase64": { "type": "string" }
-                  }
+                  "$ref": "#/components/schemas/RemoveBgResponse"
                 }
               }
             }
@@ -59,25 +44,14 @@
     "/api/enhance": {
       "post": {
         "operationId": "enhanceImage",
-        "summary": "Enhance photo quality and resolution (2K, 4K, 8K)",
-        "description": "Upscales photo resolution, applies unsharp sharpening matrix and noise reduction.",
+        "summary": "Enhance photo quality and resolution",
+        "description": "Upscales photo resolution to 2K, 4K, or 8K and sharpens image details.",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "imageUrl": { "type": "string" },
-                  "imageBase64": { "type": "string" },
-                  "resolution": {
-                    "type": "string",
-                    "enum": ["2k", "4k", "8k"],
-                    "default": "4k"
-                  },
-                  "sharpness": { "type": "integer", "default": 60 },
-                  "denoise": { "type": "integer", "default": 30 }
-                }
+                "$ref": "#/components/schemas/EnhanceRequest"
               }
             }
           }
@@ -88,12 +62,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "message": { "type": "string" },
-                    "resultImageBase64": { "type": "string" }
-                  }
+                  "$ref": "#/components/schemas/EnhanceResponse"
                 }
               }
             }
@@ -105,45 +74,24 @@
       "post": {
         "operationId": "dissectImage",
         "summary": "Dissect image into sticker components",
-        "description": "Extracts foreground and component elements from an image into isolated cut-out stickers.",
+        "description": "Extracts cut-out component elements from an image into isolated stickers.",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "imageUrl": { "type": "string" },
-                  "imageBase64": { "type": "string" },
-                  "sensitivity": { "type": "integer", "default": 50 }
-                }
+                "$ref": "#/components/schemas/DissectRequest"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Image dissected into components",
+            "description": "Image dissected successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "message": { "type": "string" },
-                    "componentsCount": { "type": "integer" },
-                    "components": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": { "type": "string" },
-                          "label": { "type": "string" },
-                          "resultImageBase64": { "type": "string" }
-                        }
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/DissectResponse"
                 }
               }
             }
@@ -154,20 +102,14 @@
     "/api/sticker-generate": {
       "post": {
         "operationId": "generateSticker",
-        "summary": "Generate a custom text/shape sticker",
-        "description": "Creates a custom sticker graphic with chosen text, font, color, and border style.",
+        "summary": "Generate a custom text or shape sticker",
+        "description": "Creates a custom sticker graphic with chosen text, font, color, and shape style.",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "text": { "type": "string", "example": "Awesome!" },
-                  "font": { "type": "string", "example": "Arial" },
-                  "color": { "type": "string", "example": "#f43f5e" },
-                  "shape": { "type": "string", "example": "die-cut" }
-                }
+                "$ref": "#/components/schemas/StickerGenerateRequest"
               }
             }
           }
@@ -178,15 +120,160 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "message": { "type": "string" },
-                    "resultImageBase64": { "type": "string" }
-                  }
+                  "$ref": "#/components/schemas/StickerGenerateResponse"
                 }
               }
             }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "RemoveBgRequest": {
+        "type": "object",
+        "properties": {
+          "imageUrl": {
+            "type": "string",
+            "description": "Public URL of the input image"
+          },
+          "imageBase64": {
+            "type": "string",
+            "description": "Base64 encoded string of the input image"
+          }
+        }
+      },
+      "RemoveBgResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "resultImageBase64": {
+            "type": "string"
+          }
+        }
+      },
+      "EnhanceRequest": {
+        "type": "object",
+        "properties": {
+          "imageUrl": {
+            "type": "string"
+          },
+          "imageBase64": {
+            "type": "string"
+          },
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "2k",
+              "4k",
+              "8k"
+            ],
+            "default": "4k"
+          },
+          "sharpness": {
+            "type": "integer",
+            "default": 60
+          },
+          "denoise": {
+            "type": "integer",
+            "default": 30
+          }
+        }
+      },
+      "EnhanceResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "resultImageBase64": {
+            "type": "string"
+          }
+        }
+      },
+      "DissectRequest": {
+        "type": "object",
+        "properties": {
+          "imageUrl": {
+            "type": "string"
+          },
+          "imageBase64": {
+            "type": "string"
+          },
+          "sensitivity": {
+            "type": "integer",
+            "default": 50
+          }
+        }
+      },
+      "DissectResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "componentsCount": {
+            "type": "integer"
+          },
+          "components": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "resultImageBase64": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "StickerGenerateRequest": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "font": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          },
+          "shape": {
+            "type": "string"
+          }
+        }
+      },
+      "StickerGenerateResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "resultImageBase64": {
+            "type": "string"
           }
         }
       }
