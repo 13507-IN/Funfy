@@ -34,8 +34,8 @@ export async function POST(req: Request) {
 
     try {
       const { removeBackground } = await import("@imgly/background-removal");
-      const blobInput = new Blob([inputBuffer]);
-      const resultBlob = await removeBackground(blobInput);
+      const dataUrl = `data:image/png;base64,${inputBuffer.toString("base64")}`;
+      const resultBlob = await removeBackground(dataUrl);
       const arrayBuf = await resultBlob.arrayBuffer();
       processedBuffer = Buffer.from(arrayBuf);
       isBgRemoved = true;
