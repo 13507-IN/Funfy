@@ -1,5 +1,5 @@
 {
-  "openapi": "3.0.1",
+  "openapi": "3.1.0",
   "info": {
     "title": "Funfy AI Sticker & Image Studio API",
     "description": "API endpoints for removing backgrounds, upscaling image resolution, dissecting images into sticker components, and generating custom sticker graphics.",
