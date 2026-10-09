@@ -1,5 +1,86 @@
 import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
 import { Canvas, FabricObject } from 'fabric';
+
+type PersistedStickerCart = Pick<StickerState, 'cart' | 'cartItems'>;
+
+const CART_DATABASE = 'funfy-browser-storage';
+const CART_OBJECT_STORE = 'cart';
+let cartDatabasePromise: Promise<IDBDatabase> | undefined;
+
+function openCartDatabase() {
+  if (!cartDatabasePromise) {
+    cartDatabasePromise = new Promise((resolve, reject) => {
+      if (typeof indexedDB === 'undefined') {
+        reject(new Error('IndexedDB is unavailable'));
+        return;
+      }
+
+      const request = indexedDB.open(CART_DATABASE, 1);
+      request.onupgradeneeded = () => {
+        request.result.createObjectStore(CART_OBJECT_STORE);
+      };
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+  return cartDatabasePromise;
+}
+
+const cartStorage = {
+  async getItem(name: string): Promise<string | null> {
+    try {
+      const database = await openCartDatabase();
+      return await new Promise((resolve, reject) => {
+        const request = database.transaction(CART_OBJECT_STORE, 'readonly').objectStore(CART_OBJECT_STORE).get(name);
+        request.onsuccess = () => resolve(typeof request.result === 'string' ? request.result : null);
+        request.onerror = () => reject(request.error);
+      });
+    } catch {
+      try {
+        return localStorage.getItem(name);
+      } catch {
+        return null;
+      }
+    }
+  },
+  async setItem(name: string, value: string): Promise<void> {
+    try {
+      const database = await openCartDatabase();
+      await new Promise<void>((resolve, reject) => {
+        const transaction = database.transaction(CART_OBJECT_STORE, 'readwrite');
+        transaction.objectStore(CART_OBJECT_STORE).put(value, name);
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = () => reject(transaction.error);
+        transaction.onabort = () => reject(transaction.error);
+      });
+    } catch (error) {
+      try {
+        localStorage.setItem(name, value);
+      } catch {
+        console.warn('Could not persist the Funfy cart in this browser.', error);
+      }
+    }
+  },
+  async removeItem(name: string): Promise<void> {
+    try {
+      const database = await openCartDatabase();
+      await new Promise<void>((resolve, reject) => {
+        const transaction = database.transaction(CART_OBJECT_STORE, 'readwrite');
+        transaction.objectStore(CART_OBJECT_STORE).delete(name);
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = () => reject(transaction.error);
+        transaction.onabort = () => reject(transaction.error);
+      });
+    } catch {
+      try {
+        localStorage.removeItem(name);
+      } catch {
+        // Storage can be unavailable in strict private-browsing contexts.
+      }
+    }
+  },
+};
 
 export interface CartItem {
   id: string;
@@ -7,6 +88,9 @@ export interface CartItem {
   quantity: number;
   price: number;
   dataUrl: string;
+  unitLabel?: string;
+  minQuantity?: number;
+  details?: string;
 }
 
 interface StickerState {
@@ -45,17 +129,20 @@ interface StickerState {
   setGuideState: (state: Partial<StickerState['guideState']>) => void;
 }
 
-export const useStickerStore = create<StickerState>((set) => ({
+export const useStickerStore = create<StickerState>()(persist<StickerState, [], [], PersistedStickerCart>((set) => ({
   canvas: null,
   setCanvas: (canvas) => set({ canvas }),
   activeObject: null,
   setActiveObject: (obj) => set({ activeObject: obj }),
   cartItems: 0,
   cart: [],
-  addToCart: (item) => set((state) => ({ 
-    cart: [...state.cart, { ...item, id: Math.random().toString(36).slice(2) }],
-    cartItems: state.cartItems + item.quantity
-  })),
+  addToCart: (item) => set((state) => {
+    const id = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    return {
+      cart: [...state.cart, { ...item, id }],
+      cartItems: state.cartItems + item.quantity,
+    };
+  }),
   removeFromCart: (id) => set((state) => {
     const item = state.cart.find((i) => i.id === id);
     const qty = item ? item.quantity : 0;
@@ -67,7 +154,7 @@ export const useStickerStore = create<StickerState>((set) => ({
   updateCartQuantity: (id, delta) => set((state) => {
     const updated = state.cart.map((item) => {
       if (item.id === id) {
-        const newQty = Math.max(10, item.quantity + delta);
+        const newQty = Math.max(item.minQuantity ?? 1, item.quantity + delta);
         return { ...item, quantity: newQty };
       }
       return item;
@@ -109,4 +196,12 @@ export const useStickerStore = create<StickerState>((set) => ({
   setGuideState: (newState) => set((state) => ({ 
     guideState: { ...state.guideState, ...newState } 
   })),
+}), {
+  name: 'funfy-cart-v1',
+  storage: createJSONStorage(() => cartStorage),
+  skipHydration: true,
+  partialize: (state) => ({
+    cart: state.cart,
+    cartItems: state.cartItems,
+  }),
 }));

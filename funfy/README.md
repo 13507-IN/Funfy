@@ -1,36 +1,25 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Funfy
 
-## Getting Started
+Funfy is a playful sticker storefront with a browser-based design studio. Visitors can browse and filter sticker packs, upload artwork, add text and shapes, save a bag between visits, and export a transparent PNG.
 
-First, run the development server:
+## Run locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). Use `npm run build` to check a production build and `npm run lint` to run ESLint.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## What works today
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Responsive storefront with searchable product categories and quick-add sticker packs.
+- Lazy-loaded Fabric.js design studio with image upload, text, shapes, layers, image tools, preview, and PNG export.
+- Cart and cart thumbnails persisted in IndexedDB, with a localStorage fallback.
+- Quantity and print-preference capture; the current prototype price is USD $0.50 per sticker.
 
-## Learn More
+## Before accepting real orders
 
-To learn more about Next.js, take a look at the following resources:
+The current cart is a locally saved bag, not a submitted order. Payment collection, shipping rates, production/fulfillment, customer order records, and secure long-term storage of print files still need to be connected. Do not represent the current checkout as live or collect card details in the browser. Add a trusted payment provider and fulfillment/storage integrations on the server, verify payment events, and make prices authoritative on the server before launch.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Some image tools are browser-side prototypes. Test them with representative artwork and connect a production-grade image/fulfillment workflow before promising print quality or delivery dates.

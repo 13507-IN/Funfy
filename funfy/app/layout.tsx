@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Funfy - Custom Sticker Maker",
-  description: "Design, customize, and order your own physical stickers instantly!",
+  title: "Funfy — Make your world a little more you",
+  description: "Shop playful sticker packs or create a one-of-a-kind design in the Funfy sticker studio.",
 };
 
 export default function RootLayout({
@@ -32,7 +32,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Creepster&family=Fredoka+One&family=Pacifico&display=swap" rel="stylesheet" />
       </head>
-      <body className="min-h-full flex flex-col bg-slate-50 text-slate-900 font-sans selection:bg-fuchsia-300 selection:text-fuchsia-900 overflow-hidden">
+      <body className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans selection:bg-fuchsia-300 selection:text-fuchsia-900">
         {children}
       </body>
     </html>
